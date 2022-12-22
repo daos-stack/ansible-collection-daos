@@ -41,11 +41,13 @@
     (daos_admin_bashrc.stat is defined and not daos_admin_bashrc.stat.exists) and
     (inventory_hostname == groups['daos_admins'][0])
 
+# This alias is added but commented out
+# It's always good to be able to have this ready to use in case it's needed.
 - name: "Add dmg alias to .bashrc for {{ daos_admin_user }}"
   ansible.builtin.lineinfile:
     path: "~/.bashrc"
-    regexp: '^alias dmg=.*'
-    line: "alias dmg='/usr/bin/dmg -o {{ daos_admin_config_dir }}/daos_control.yml'"
+    regexp: '^# alias dmg=.*'
+    line: "# alias dmg='/usr/bin/dmg -o {{ daos_admin_config_dir }}/daos_control.yml'"
     state: present
     backup: true
   become_user: "{{ daos_admin_user }}"

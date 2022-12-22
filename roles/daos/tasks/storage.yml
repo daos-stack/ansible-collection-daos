@@ -37,8 +37,7 @@
 - name: Determine if storage needs to be formatted
   ansible.builtin.shell: |
     set -o pipefail
-    dmg system query -o {{ daos_admin_config_dir }}/daos_control.yml -v -j 2>/dev/null | jq -r '.error'
-  become_user: "{{ daos_admin_user }}"
+    dmg system query -v -j 2>/dev/null | jq -r '.error'
   changed_when: false
   register: daos_format_needed
   failed_when: (daos_format_needed.rc == 1) and
@@ -51,46 +50,40 @@
   when: inventory_hostname == groups['daos_admins'][0]
 
 - name: Format storage
-  ansible.builtin.command: "dmg storage format -o {{ daos_admin_config_dir }}/daos_control.yml -l '{{ daos_server_ips }}'"
-  become_method: su
-  become_user: "{{ daos_admin_user }}"
+  ansible.builtin.command: "dmg storage format -l '{{ daos_server_ips }}'"
   when: (inventory_hostname == groups['daos_admins'][0]) and
         (daos_do_storage_format | bool) and
         ("system is uninitialized (storage format required?)" in daos_format_needed.stdout)
 
-# After running 'dmg storage format' running 'dmg system query' will block until
-# the system is initialized. We should not go on until all of the servers have
-# joined.
+# After running 'dmg storage format' running 'dmg system query -v' will block until
+# the system is initialized. Do not continue until all of the servers have joined.
 - name: Wait for system to initialize
   # no command-instead-of-shell
   ansible.builtin.shell: |
     set -o pipefail
     dmg system query -o /home/daos_admin/daos/daos_control.yml -j | jq -r '.response.members[]|select(.state=="joined")|.fault_domain'
-  become_method: su
-  become_user: "{{ daos_admin_user }}"
   register: daos_joined_servers
   until: daos_joined_servers.stdout_lines | length == groups['daos_servers'] | length
   delay: 5
   retries: 10
-  when: inventory_hostname == groups['daos_admins'][0]
   changed_when: false
+  when: inventory_hostname == groups['daos_admins'][0]
 
+# NOTE: Make sure that the daos_pools variable is defined in the
+#       group_vars/daos_admin/daos or group_vars/all/daos file!
+#       If defined elsewhere, this task won't run.
 - name: Create pools
   ansible.builtin.shell: |
     set -o pipefail
-    if [[ ! $(dmg pool list -o /home/daos_admin/daos/daos_control.yml -j | jq -r '.response.pools[] | select(.label=="{{ pool.label }}") | .label') == "{{ pool.label }}" ]]; then
-      dmg pool create -o {{ daos_admin_config_dir }}/daos_control.yml -z {{ pool.size }} -t {{ pool.tier_ratio }} -u {{ pool.user }} --label="{{ pool.label }}"
-      dmg pool set-prop "{{ pool.label }}" -o {{ daos_admin_config_dir }}/daos_control.yml --name=reclaim --value=disabled
+    if [[ ! $(dmg pool list -j | jq -r '.response.pools[] | select(.label=="{{ pool.label }}") | .label') == "{{ pool.label }}" ]]; then
+      dmg pool create -z {{ pool.size }} -t {{ pool.tier_ratio }} -u {{ pool.user }} --label="{{ pool.label }}"
+      dmg pool set-prop "{{ pool.label }}" --name=reclaim --value=disabled
       {% for acl in pool.acls %}
-        dmg pool update-acl -o {{ daos_admin_config_dir }}/daos_control.yml -e "{{ acl }}" {{ pool.label }}
+        dmg pool update-acl -e "{{ acl }}" {{ pool.label }}
       {% endfor %}
-    else
-      echo "False"
     fi
-  become_method: su
-  become_user: "{{ daos_admin_user }}"
   register: daos_created_pools
-  changed_when: not daos_created_pools.stdout | bool
+  changed_when: '"Pool created" in daos_created_pools.stdout'
   loop: "{{ daos_pools }}"
   loop_control:
     loop_var: pool
