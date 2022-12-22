@@ -15,6 +15,17 @@
     state: started
   when: daos_role_server in daos_roles
 
+- name: Wait for daos port
+  ansible.builtin.wait_for:
+    port: "{{ daos_port | default('10001') }}"
+    state: started
+    delay: 5
+    sleep: 2
+    timeout: 300
+  become: false
+  changed_when: false
+  when: daos_role_server in daos_roles
+
 - name: Ensure that the daos_agent service is started
   ansible.builtin.service:
     name: daos_agent
