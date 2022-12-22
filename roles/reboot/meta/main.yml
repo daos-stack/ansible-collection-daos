@@ -1,0 +1,27 @@
+---
+galaxy_info:
+  author: daos-stack
+  description: Reboots the host if a reboot is needed
+  company: Intel Corporation
+  license: Apache-2.0
+
+  min_ansible_version: 2.11
+
+  #
+  # platforms is a list of platforms, and each platform has a name and a
+  # list of versions.
+  #
+  platforms:
+    - name: EL
+      versions:
+        - "7"
+        - "8"
+    - name: opensuse
+      versions:
+        - "15.3"
+        - "15.4"
+
+  galaxy_tags:
+    - system
+
+  dependencies: []

@@ -1,0 +1,10 @@
+---
+# defaults file for packages
+
+packages_install_common: true
+
+packages_install_additional: true
+
+# The name of set of packages to be installed in addition to the common packages
+# installed by this role.
+packages_additional_set: "default"

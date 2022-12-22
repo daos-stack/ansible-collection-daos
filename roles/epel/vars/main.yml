@@ -1,0 +1,53 @@
+---
+# vars file for epel
+
+_epel_install:
+  default: false
+  amazon_2: true
+  redhat: true
+
+epel_install: "{{ _epel_install[ansible_distribution|replace(' ','_')|lower ~'_'~ ansible_distribution_major_version] |
+  d(_epel_install[ansible_distribution|replace(' ','_')|lower] |
+  d(_epel_install[ansible_os_family|lower ~'_'~ ansible_distribution_major_version] |
+  d(_epel_install[ansible_os_family|lower] |
+  d(_epel_install['default'] )))) }}"
+
+_epel_version:
+  default: "{{ ansible_distribution_major_version }}"
+  amazon_2: 7
+
+epel_version: "{{ _epel_version[ansible_distribution|replace(' ','_')|lower ~'_'~ ansible_distribution_major_version] |
+  d(_epel_version[ansible_distribution|replace(' ','_')|lower] |
+  d(_epel_version[ansible_os_family|lower ~'_'~ ansible_distribution_major_version] |
+  d(_epel_version[ansible_os_family|lower] |
+  d(_epel_version['default'] )))) }}"
+
+epel_url: "https://dl.fedoraproject.org/pub/epel/epel-release-latest-{{ epel_version }}.noarch.rpm"
+
+epel_next_url: "https://dl.fedoraproject.org/pub/epel/epel-next-release-latest-{{ epel_version }}.noarch.rpm"
+
+epel_gpg_key: "https://dl.fedoraproject.org/pub/epel/RPM-GPG-KEY-EPEL-{{ epel_version }}"
+
+
+_epel_additional_repos:
+  alma:
+    - powertools
+  rocky_8:
+    - powertools
+  stream:
+    - powertools
+  redhat: []
+
+epel_additional_repos: "{{ _epel_additional_repos[ansible_distribution|replace(' ','_')|lower ~'_'~ ansible_distribution_major_version] |
+  d(_epel_additional_repos[ansible_distribution|replace(' ','_')|lower] |
+  d(_epel_additional_repos[ansible_os_family|lower ~'_'~ ansible_distribution_major_version] |
+  d(_epel_additional_repos[ansible_os_family|lower] |
+  d([])))) }}"
+
+# On CentOS Stream the epel-next-release repository should also be installed.
+# See https://docs.fedoraproject.org/en-US/epel/#_quickstart.
+_epel_install_next:
+  default: false
+  stream: true
+
+epel_install_next: "{{ _epel_install_next[ansible_distribution_release | lower] | d(_epel_install_next['default']) }}"

@@ -1,0 +1,34 @@
+---
+#
+# Debian based distro specific tasks for the reboot role
+# Tasks to determine the need to reboot
+#
+
+- name: Debian family specific check to determine if reboot is required
+  block:
+    - name: Check for needs-restarting executable
+      ansible.builtin.stat:
+        path: /usr/sbin/needrestart
+      register: reboot_debian_needsrestart_executable
+
+    - name: Determine if a reboot is required
+      ansible.builtin.command: /usr/sbin/needrestart -b
+      check_mode: no
+      register: reboot_debian_needsrestarting
+      changed_when: reboot_debian_needsrestarting.rc == 1
+      failed_when: reboot_debian_needsrestarting.rc not in [ 0, 1 ]
+      when:
+        - reboot_debian_needsrestart_executable is defined
+        - reboot_debian_needsrestart_executable.stat.exists
+
+    - name: Set reboot flag if a reboot is required
+      ansible.builtin.set_fact:
+        reboot_do_reboot: yes
+        cacheable: no
+      when: reboot_debian_needsrestarting.changed
+  when:
+    - ansible_connection != "docker"
+    - ansible_connection != "container"
+    - ansible_connection != "podman"
+  tags:
+    - reboot

@@ -1,0 +1,17 @@
+---
+#
+# Install tasks for the reboot role
+#
+
+- name: Install required packages
+  ansible.builtin.package:
+    name: "{{ reboot_packages }}"
+    state: present
+    cache_valid_time: '{{ 3600 if ansible_facts.pkg_mgr == "apt" else omit }}'
+  tags:
+    - reboot
+
+- name: Stat /etc/systemd/system/run-ansible.timer
+  ansible.builtin.stat:
+    path: /etc/systemd/system/run-ansible.timer
+  register: reboot_run_ansible_timer

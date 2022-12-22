@@ -1,0 +1,19 @@
+#
+# {{ ansible_managed }}
+#
+# tuned configuration
+#
+
+{% for key, val in tune_tuned_daos_profile.items() %}
+[{{ key }}]
+{% if val.items is defined %}
+{% for subkey, subval in val.items() %}
+{{ subkey }}={{ subval }}
+{% endfor %}
+{% else %}
+{% for item in val %}
+{{ item }}
+{% endfor %}
+{% endif %}
+
+{% endfor %}

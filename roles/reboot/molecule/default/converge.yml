@@ -1,0 +1,8 @@
+---
+- name: Converge
+  hosts: all
+  become: yes
+  gather_facts: yes
+
+  roles:
+  - role: "{{ lookup('env', 'MOLECULE_PROJECT_DIRECTORY') | basename }}"

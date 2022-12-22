@@ -1,0 +1,10 @@
+---
+
+- name: Converge
+  hosts: all
+  gather_facts: true
+
+  tasks:
+    - name: "Include epel role"
+      ansible.builtin.include_role:
+        name: "epel"

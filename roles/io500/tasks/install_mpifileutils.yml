@@ -1,0 +1,126 @@
+---
+# mpifileutils install tasks for io500
+# Install specific version of cmake needed for mpifileutils
+
+- name: Create tools dir
+  ansible.builtin.file:
+    path: "{{ io500_tools_dir }}"
+    state: directory
+    owner: root
+    group: root
+    mode: '0755'
+
+- name: Download cmake install script
+  ansible.builtin.get_url:
+    url: "{{ io500_cmake_installer_url }}"
+    dest: "{{ io500_tools_dir }}/{{ io500_cmake_installer_script }}"
+    mode: '0755'
+
+- name: Run cmake install script
+  ansible.builtin.shell: |
+    {{ io500_tools_dir }}/{{ io500_cmake_installer_script }} \
+    --skip-license
+  args:
+    chdir: "{{ io500_tools_dir }}"
+    creates: "{{ io500_tools_dir }}/bin/cmake"
+
+- name: Create mpifileutils dirs
+  ansible.builtin.file:
+    path: "{{ item }}"
+    state: directory
+    owner: root
+    group: root
+    mode: "0755"
+  loop:
+    - "{{ io500_mfu_root_dir }}"
+    - "{{ io500_mfu_deps_dir }}"
+    - "{{ io500_mfu_src_dir }}"
+    - "{{ io500_mfu_build_dir }}"
+    - "{{ io500_mfu_install_dir }}"
+
+- name: Extract mpifileutils depencency tarballs
+  ansible.builtin.unarchive:
+    src: "{{ item }}"
+    dest: "{{ io500_mfu_deps_dir }}"
+    remote_src: yes
+  loop:
+    - "{{ io500_libcircle_src_url }}"
+    - "{{ io500_lwgrp_src_url }}"
+    - "{{ io500_dtcmp_src_url }}"
+
+- name: Copy libcircle patch file
+  ansible.builtin.copy:
+    src: libcircle_opt.patch
+    dest: "{{ io500_libcircle_dir }}"
+
+- name: Apply libcircle patch
+  ansible.builtin.shell:  patch -p1 < libcircle_opt.patch
+  args:
+    chdir: "{{ io500_libcircle_dir }}"
+  changed_when: false
+
+- name: Build libcircle
+  ansible.builtin.shell: |
+    export I_MPI_OFI_LIBRARY_INTERNAL=0
+    export I_MPI_OFI_PROVIDER="tcp;ofi_rxm"
+    source /opt/intel/oneapi/setvars.sh
+    ./configure --prefix="{{ io500_mfu_install_dir }}"
+    make install
+  args:
+    chdir: "{{ io500_libcircle_dir }}"
+    executable: /bin/bash
+    creates: "{{ io500_mfu_install_dir }}/lib/libcircle.so"
+
+- name: Build lwgrp
+  ansible.builtin.shell: |
+    export I_MPI_OFI_LIBRARY_INTERNAL=0
+    export I_MPI_OFI_PROVIDER="tcp;ofi_rxm"
+    source /opt/intel/oneapi/setvars.sh
+    ./configure --prefix="{{ io500_mfu_install_dir }}"
+    make install
+  args:
+    chdir: "{{ io500_lwgrp_dir }}"
+    executable: /bin/bash
+    creates: "{{ io500_mfu_install_dir }}/lib/liblwgrp.so"
+
+- name: Build dtcmp
+  ansible.builtin.shell: |
+    # Load Intel MPI
+    export I_MPI_OFI_LIBRARY_INTERNAL=0
+    export I_MPI_OFI_PROVIDER="tcp;ofi_rxm"
+    source /opt/intel/oneapi/setvars.sh
+    ./configure --prefix="{{ io500_mfu_install_dir }}" --with-lwgrp="{{ io500_mfu_install_dir }}"
+    make install
+  args:
+    chdir: "{{ io500_dtcmp_dir }}"
+    executable: /bin/bash
+    creates: "{{ io500_mfu_install_dir }}/lib/libdtcmp.so"
+
+- name: Clone mpifileutils git repo
+  ansible.builtin.git:
+    repo: "{{ io500_mpifileutils_repo_url }}"
+    dest: "{{ io500_mpifileutils_src_dir }}"
+    single_branch: yes
+    version: main
+
+- name: Build mpifileutils
+  ansible.builtin.shell: |
+    source /opt/intel/oneapi/setvars.sh
+    export MY_DAOS_INSTALL_PATH="/usr"
+    export MY_MFU_INSTALL_PATH="{{ io500_mfu_install_dir }}"
+    export MY_MFU_SOURCE_PATH="{{ io500_mfu_src_dir }}/mpifileutils"
+    export MY_MFU_BUILD_PATH="{{ io500_mfu_build_dir }}"
+    export I_MPI_OFI_LIBRARY_INTERNAL=0
+    export I_MPI_OFI_PROVIDER="tcp;ofi_rxm"
+    export CFLAGS="-I/usr/include"
+    export LDFLAGS="-L/usr/lib64/ -luuid -ldaos -ldfs -ldaos_common -lgurt -lpthread"
+    /usr/local/tools/bin/cmake "${MY_MFU_SOURCE_PATH}" \
+      -DENABLE_XATTRS=OFF \
+      -DWITH_DTCMP_PREFIX="${MY_MFU_INSTALL_PATH}" \
+      -DWITH_LibCircle_PREFIX="${MY_MFU_INSTALL_PATH}" \
+      -DCMAKE_INSTALL_PREFIX="${MY_MFU_INSTALL_PATH}" &&
+      make -j8 install
+  args:
+    chdir: "{{ io500_mfu_build_dir }}"
+    executable: /bin/bash
+    #creates: "{{ io500_mfu_install_dir }}/lib/libdtcmp.so"

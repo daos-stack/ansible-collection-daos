@@ -1,0 +1,102 @@
+---
+# tuned related tasks for the tune role
+
+- name: Install Tuned
+  package:
+    name: tuned
+    state: present
+
+- name: Create /etc/tuned/tuned-main.conf
+  template:
+    src: etc/tuned/tuned-main.conf.j2
+    dest: /etc/tuned/tuned-main.conf
+    owner: root
+    group: root
+    mode: '0644'
+  notify: restart tuned
+
+- name: Enable Tuned
+  service:
+    name: tuned
+    state: started
+    enabled: yes
+
+# - name: Register active profile
+#   ansible.builtin.shell:
+#     cmd: "tuned-adm active | sed 's/Current active profile: //'"
+#   register: tune_tuned_active_profile
+#   changed_when: false
+
+- name: Install tuned packages
+  ansible.builtin.package:
+    name: "{{ item }}"
+    state: present
+  loop:
+    - tuned
+    - tuned-utils
+
+- name: Stat /etc/tuned/active_profile
+  ansible.builtin.stat:
+    path: /etc/tuned/active_profile
+  register: tune_tuned_active_profile_file
+
+- name: Get active profile
+  ansible.builtin.slurp:
+    src: /etc/tuned/active_profile
+  register: tune_tuned_active_profile
+  when:
+    - tune_tuned_active_profile_file.stat is defined
+    - tune_tuned_active_profile_file.stat.exists
+  changed_when: false
+
+- name: Register recommended profile
+  ansible.builtin.command: tuned-adm recommend
+  register: tune_tuned_recommended_profile_cmd
+  changed_when: false
+  when: tune_tuned_use_recommended_profile | bool
+
+- name: Set profile facts
+  set_fact:
+    tune_tuned_active_profile: "{{ tune_tuned_active_profile.content | b64decode | trim }}"
+    tune_tuned_recommended_profile: "{{ tune_tuned_recommended_profile_cmd.stdout | d('') }}"
+
+- name: Show current active profile
+  ansible.builtin.debug:
+    var: tune_tuned_active_profile
+
+- name: Show recommended profile
+  debug:
+    var: tune_tuned_recommended_profile
+  when: tune_tuned_use_recommended_profile | bool
+
+- name: Set tuned recommended profile
+  ansible.builtin.command:
+    cmd: "tuned-adm profile {{ tune_tuned_recommended_profile.stdout }}"
+  when: tune_tuned_use_recommended_profile | bool
+  changed_when: tune_tuned_active_profile != tune_tuned_recommended_profile
+
+- name: Configure daos_tuned profile
+  block:
+    - name: Create custom tuned profile directory
+      ansible.builtin.file:
+        path: "/etc/tuned/{{ tune_tuned_profile }}"
+        state: directory
+        owner: root
+        group: root
+        mode: '0755'
+
+    - name: Create custom tuned.conf file
+      ansible.builtin.template:
+        src: etc/tuned/daos/tuned.conf.j2
+        dest: "/etc/tuned/{{ tune_tuned_profile }}/tuned.conf"
+        owner: root
+        group: root
+        mode: '0644'
+      register: tune_tuned_conf
+  when: tune_tuned_profile | regex_search('^daos.*', ignorecase=True) is not none
+
+- name: Set tuned profile
+  ansible.builtin.command:
+    cmd: "tuned-adm profile {{ tune_tuned_profile }}"
+  when: not (tune_tuned_use_recommended_profile | bool)
+  changed_when: tune_tuned_active_profile != tune_tuned_profile or tune_tuned_conf.changed

@@ -1,0 +1,12 @@
+---
+# DAOS client node configuration tasks for the daos role
+
+- name: Create daos_agent.yml file
+  ansible.builtin.template:
+    src: 'etc/daos/{{ daos_config_version }}/daos_agent.yml.j2'
+    dest: '/etc/daos/daos_agent.yml'
+    owner: root
+    group: root
+    mode: '0644'
+    backup: true
+  notify: restart daos_agent service

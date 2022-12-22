@@ -1,0 +1,5 @@
+type: package
+match_type: glob
+case_sensitive: on
+solvable_name: ipmctl
+comment: Lock for DAOS-11637 workaround

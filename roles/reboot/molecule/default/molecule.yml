@@ -1,0 +1,71 @@
+---
+dependency:
+  name: galaxy
+  options:
+    role-file: requirements.yml
+lint: |
+  yamllint molecule/default/converge.yml
+  ansible-lint molecule/default/converge.yml
+driver:
+  name: docker
+platforms:
+  - name: 'reboot-centos7.9'
+    image: daosdo/centos-systemd:7.9
+    tmpfs:
+      - /run
+      - /tmp
+    volumes:
+      - /sys/fs/cgroup:/sys/fs/cgroup:ro
+    privileged: yes
+    pre_build_image: yes
+  # - name: 'reboot-centos8.2'
+  #  image: daosdo/centos-systemd:8.2
+  #  tmpfs:
+  #    - /run
+  #    - /tmp
+  #  volumes:
+  #    - /sys/fs/cgroup:/sys/fs/cgroup:ro
+  #  privileged: yes
+  #  pre_build_image: yes
+  - name: 'reboot-opensuse15.2'
+    image: daosdo/opensuse-systemd:15.2
+    tmpfs:
+      - /run
+      - /tmp
+    volumes:
+      - /sys/fs/cgroup:/sys/fs/cgroup:ro
+    privileged: yes
+    pre_build_image: yes
+  - name: 'reboot-ubuntu20.04'
+    image: daosdo/ubuntu-systemd:20.04
+    tmpfs:
+      - /run
+      - /tmp
+    volumes:
+      - /sys/fs/cgroup:/sys/fs/cgroup:ro
+    privileged: yes
+    pre_build_image: yes
+provisioner:
+  name: ansible
+  config_options:
+    defaults:
+      stdout_callback: yaml
+      bin_ansible_callbacks: yes
+verifier:
+  name: ansible
+scenario:
+  name: default
+  test_sequence:
+    - dependency
+    - lint
+    # - cleanup
+    # - destroy
+    - syntax
+    - create
+    - prepare
+    - converge
+    - idempotence
+    # - side_effect
+    - verify
+    - cleanup
+    - destroy

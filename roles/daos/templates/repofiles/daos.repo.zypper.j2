@@ -1,0 +1,15 @@
+#
+# {{ ansible_managed }}
+#
+
+{% for repo in daos_repos %}
+[{{ repo.alias }}]
+name={{ repo.name }}
+baseurl={{ repo.baseurl }}
+enabled={{ repo.enabled }}
+autorefresh=1
+gpgcheck={{ repo.gpgcheck }}
+protect=1
+gpgkey={{ repo.gpgkey }}
+
+{% endfor %}

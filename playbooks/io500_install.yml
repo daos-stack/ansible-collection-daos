@@ -1,0 +1,11 @@
+---
+# playbook:     io500_install.yml
+# playbook_fqn: daos_stack.daos.io500_install
+
+- name: IO500 installation
+  hosts: daos_clients:daos_admins
+  gather_facts: yes
+  become: yes
+
+  roles:
+    - role: io500

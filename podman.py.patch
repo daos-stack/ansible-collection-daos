@@ -1,0 +1,10 @@
+--- podman.py.orig	2022-09-20 12:02:02.000000000 -0700
++++ podman.py	2022-09-20 12:16:09.000000000 -0700
+@@ -22,6 +22,7 @@
+           - The ID of the container you want to access.
+         default: inventory_hostname
+         vars:
++          - name: inventory_hostname
+           - name: ansible_host
+       remote_user:
+         description:

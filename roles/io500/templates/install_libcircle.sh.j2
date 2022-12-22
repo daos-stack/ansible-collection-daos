@@ -1,0 +1,16 @@
+#!/bin/bash
+# {{ ansible_managed }}
+
+# Load Intel MPI
+export I_MPI_OFI_LIBRARY_INTERNAL=0
+export I_MPI_OFI_PROVIDER="tcp;ofi_rxm"
+
+source /opt/intel/oneapi/setvars.sh
+
+# Install libcircle
+pushd "{{ io500_libcircle_dir }}"
+
+patch -p1 < libcircle_opt.patch
+
+./configure --prefix="{{ io500_mfu_install_dir }}"
+make install

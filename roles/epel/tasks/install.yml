@@ -1,0 +1,46 @@
+---
+# installation tasks for epel
+
+- name: Install epel gpg key
+  ansible.builtin.rpm_key:
+    key: "{{ epel_gpg_key }}"
+    state: present
+
+- name: Install epel-release
+  ansible.builtin.package:
+    name: "{{ epel_url }}"
+    state: present
+  register: epel_repo
+
+# TODO: Need to investigate to determine if this is necessary
+# - name: Enable codeready-builder repo on RedHat
+#   ansible.builtin.shell: |
+#     subscription-manager repos \
+#     --enable codeready-builder-for-rhel-{{ ansible_distribution_major_version }}-{{ ansible_architecture }}-rpms
+#   when: ansible_distribution | lower == "redhat"
+
+- name: Install dnf-plugins-core
+  ansible.builtin.package:
+    name: dnf-plugins-core
+    state: present
+  when: ansible_pkg_mgr == "dnf"
+
+- name: Enable repos
+  ansible.builtin.command: dnf config-manager --set-enabled "{{ item }}"
+  loop: "{{ epel_additional_repos }}"
+  changed_when: false
+  register: epel_additional_repos
+
+- name: Install epel-next-release
+  ansible.builtin.package:
+    name: "{{ epel_next_url }}"
+    state: present
+  when: epel_install_next | bool
+  register: epel_next_repo
+
+- name: Update package cache # noqa no-handler
+  ansible.builtin.package:
+    update_cache: yes
+  when: epel_repo.changed or
+    epel_additional_repos.changed or
+    epel_next_repo.changed

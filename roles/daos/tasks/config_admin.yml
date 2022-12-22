@@ -1,0 +1,50 @@
+---
+# DAOS admin node configuration tasks for the daos role
+
+- name: Create directory for dmg config and certs
+  ansible.builtin.file:
+    path: "{{ daos_admin_certs_dir }}"
+    state: directory
+    owner: "{{ daos_admin_user }}"
+    group: "{{ daos_admin_user }}"
+    mode: '0755'
+
+- name: Set facts for admin cert paths
+  ansible.builtin.set_fact:
+    daos_transport_config_ca_cert: "{{ daos_admin_certs_dir }}/daosCA.crt"
+    daos_transport_config_admin_cert: "{{ daos_admin_certs_dir }}/admin.crt"
+    daos_transport_config_admin_key: "{{ daos_admin_certs_dir }}/admin.key"
+
+- name: Create daos_control.yml file for dmg
+  ansible.builtin.template:
+    src: 'etc/daos/{{ daos_config_version }}/daos_control.yml.j2'
+    dest: '{{ daos_admin_config_dir }}/daos_control.yml'
+    owner: "{{ daos_admin_user }}"
+    group: "{{ daos_admin_user }}"
+    mode: '0644'
+    backup: true
+  tags:
+    - daos
+    - daos_config
+
+- name: Stat .bashrc for daos admin user
+  ansible.builtin.stat:
+    path: /home/{{ daos_admin_user }}/.bashrc
+  register: daos_admin_bashrc
+
+- name: Create .bashrc for daos admin user
+  ansible.builtin.shell: |
+    rsync -avh /etc/skel/ /home/{{ daos_admin_user }}/
+    chown -R {{ daos_admin_user }}:{{ daos_admin_user }} /home/{{ daos_admin_user }}
+  when: (daos_admin_bashrc.stat is not defined) or
+    (daos_admin_bashrc.stat is defined and not daos_admin_bashrc.stat.exists) and
+    (inventory_hostname == groups['daos_admins'][0])
+
+- name: "Add dmg alias to {{ daos_admin_user }} .bashrc"
+  ansible.builtin.lineinfile:
+    path: "~/.bashrc"
+    regexp: '^alias dmg=.*'
+    line: "alias dmg='/usr/bin/dmg -o {{ daos_admin_config_dir }}/daos_control.yml'"
+    state: present
+    backup: true
+  become_user: "{{ daos_admin_user }}"

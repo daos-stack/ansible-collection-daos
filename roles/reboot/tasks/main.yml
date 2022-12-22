@@ -1,0 +1,68 @@
+---
+#
+# Main tasks for the reboot role
+#
+
+- name: Install packages required to evaluate need for reboot
+  ansible.builtin.include_tasks: install.yml
+  args:
+    apply:
+      tags:
+        - reboot
+        - reboot_install
+  tags:
+    - reboot
+    - reboot_install
+
+# Check for existence of /etc/ansible/reboot
+# If the file exists set reboot_do_reboot = yes
+- name: Set reboot_do_reboot variable
+  block:
+    - name: Stat /etc/ansible/reboot file
+      stat:
+        path: /etc/ansible/reboot
+      register: reboot_reboot_file
+
+    - name: Set reboot flag if /etc/ansible/reboot file exists
+      set_fact:
+        reboot_do_reboot: yes
+        cacheable: no
+      when:
+        - reboot_reboot_file.stat.exists is defined
+        - reboot_reboot_file.stat.exists | bool
+
+  when: reboot_check_reboot_file | bool
+  tags:
+    - reboot
+
+# Only evaluate output from OS utilities such as needrestart if
+# reboot_do_reboot = no
+# If reboot_do_reboot = yes at this point then there is no need to do any
+# further checking because we know a reboot needs to happen.
+- name: Include OS Specific reboot tasks
+  ansible.builtin.include_tasks: '{{ lookup("first_found", params) }}'
+  args:
+    apply:
+      tags:
+        - reboot
+  vars:
+    params:
+      files:
+        - 'reboot_eval_{{ ansible_distribution | lower }}_{{ ansible_distribution_version }}.yml'
+        - 'reboot_eval_{{ ansible_distribution | lower }}_{{ ansible_distribution_major_version }}.yml'
+        - 'reboot_eval_{{ ansible_distribution | lower }}.yml'
+        - 'reboot_eval_{{ ansible_os_family | lower }}.yml'
+        - 'reboot_eval_redhat.yml'
+  when: not reboot_do_reboot | bool
+  tags:
+    - reboot
+
+- name: Include tasks that perform the reboot
+  ansible.builtin.include_tasks: reboot.yml
+  args:
+    apply:
+      tags:
+        - reboot
+  when: reboot_do_reboot | bool
+  tags:
+    - reboot

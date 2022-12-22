@@ -1,0 +1,11 @@
+---
+# installation tasks file for daos on Amazon Linux
+
+- name: Get epel status
+  command: amazon-linux-extras list | grep epel | awk '{print $3}'
+  register: daos_amazon_epel_status
+  changed_when: false
+
+- name: Install epel from amazon-linux-extras
+  command: amazon-linux-extras install -y epel
+  when: daos_amazon_epel_status.stdout == 'available'

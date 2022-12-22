@@ -1,0 +1,88 @@
+---
+# vars file for io500
+
+_io500_install_task_file:
+  amazon: install_amazon.yml
+  debian: install_debian.yml
+  redhat: install_redhat.yml
+  suse: install_suse.yml
+  ubuntu: install_ubuntu.yml
+
+io500_install_task_file: '{{  _io500_install_task_file[ansible_distribution|replace(" ","_")|lower ~"_"~ ansible_distribution_version] |
+  d(_io500_install_task_file[ansible_distribution|replace(" ","_")|lower ~"_"~ ansible_distribution_major_version] |
+  d(_io500_install_task_file[ansible_distribution|replace(" ","_")|lower] |
+  d(_io500_install_task_file[ansible_os_family|lower ~"_"~ ansible_distribution_major_version] |
+  d(_io500_install_task_file[ansible_os_family|lower] |
+  d(""))))) }}'
+
+_io500_dep_pkgs:
+  default: []
+  centos_7:
+    - bzip2-devel
+    - clustershell
+    - curl
+    - epel-release
+    - git
+    - jq
+    - libarchive-devel
+    - libuuid-devel
+    - ncdu
+    - openssl-devel
+    - patch
+    - python3
+    - python3-pip
+    - rsync
+    - wget
+  redhat_8:
+    - bzip2-devel
+    - clustershell
+    - gcc-toolset-9-gcc
+    - gcc-toolset-9-gcc-c++
+    - git
+    - jq
+    - libarchive-devel
+    - libuuid-devel
+    - lsof
+    - nvme-cli
+    - openssl-devel
+    - patch
+    - pciutils
+    - pdsh
+    - rsync
+    - sudo
+    - vim
+    - wget
+    - which
+  suse:
+    - bzip2
+    - libzip-devel
+    - clustershell
+    - git
+    - jq
+    - libarchive-devel
+    - libuuid-devel
+    - lsof
+    - nvme-cli
+    - openssl-devel
+    - patch
+    - pciutils
+    - pdsh
+    - rsync
+    - sudo
+    - vim
+    - wget
+    - which
+
+io500_dep_pkgs: '{{ _io500_dep_pkgs[ansible_distribution|replace(" ","_")|lower ~"_"~ ansible_distribution_version] |
+  d(_io500_dep_pkgs[ansible_distribution|replace(" ","_")|lower ~"_"~ ansible_distribution_major_version] |
+  d(_io500_dep_pkgs[ansible_distribution|replace(" ","_")|lower] |
+  d(_io500_dep_pkgs[ansible_os_family|lower ~"_"~ ansible_distribution_major_version] |
+  d(_io500_dep_pkgs[ansible_os_family|lower] |
+  d(_io500_dep_pkgs["default"]))))) }}'
+
+_io500_oneapi_repo_file:
+  default: /etc/yum.repos.d/oneAPI.repo
+  suse: /etc/zypp/repos.d/oneAPI.repo
+
+io500_oneapi_repo_file: '{{ _io500_oneapi_repo_file[ansible_os_family|lower] |
+  d(_io500_oneapi_repo_file["default"]) }}'

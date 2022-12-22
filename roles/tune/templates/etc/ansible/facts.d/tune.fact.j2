@@ -1,0 +1,37 @@
+#!/usr/bin/env python3
+# {{ ansible_managed | comment }}
+# Ansible facts for tuned
+
+import sys
+import os
+import subprocess
+import json
+
+def run_command(cmd):
+    retval = subprocess.Popen(cmd,
+                              shell=True,
+                              stdout=subprocess.PIPE).communicate()[0].decode('utf-8').strip()
+    return retval
+
+def iommu_is_enabled():
+    dmesg_out = run_command('dmesg')
+    return 'DMAR: IOMMU enabled' in dmesg_out or 'DMAR-IR' in dmesg_out
+
+def iommu_is_enabled_in_grub():
+    is_enabled = False
+    with open(r'/etc/default/grub', 'r') as fp:
+        lines = fp.readlines()
+        for row in lines:
+            if 'intel_iommu=on' in row:
+              is_enabled = True
+              break
+    return is_enabled
+
+def main():
+    facts = {}
+    facts['iommu_is_enabled'] = iommu_is_enabled()
+    facts['iommu_is_enabled_in_grub'] = iommu_is_enabled_in_grub()
+    print(json.dumps(facts, sort_keys=False, indent=4, separators=(',', ' : ')))
+
+if __name__== '__main__':
+    main()

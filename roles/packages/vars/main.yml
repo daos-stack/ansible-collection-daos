@@ -1,0 +1,185 @@
+---
+# vars for packages role
+
+# Packages to be installed on all hosts
+_packages_common:
+  amazon_2:
+    - htop
+    - iftop
+    - iotop
+    - iperf
+    - jq
+    - lsof
+    - nvme-cli
+    - pciutils
+    - pdsh
+    - sudo
+    - vim
+    - which
+  centos_7:
+    - bind-utils
+    - bzip2
+    - git
+    - gzip
+    - htop
+    - iftop
+    - iotop
+    - iperf
+    - jq
+    - lsof
+    - ncdu
+    - net-tools
+    - nmap
+    - nmap-ncat
+    - nvme-cli
+    - pciutils
+    - psmisc
+    - rsync
+    - screen
+    - strace
+    - sudo
+    - telnet
+    - tmux
+    - traceroute
+    - tree
+    - unzip
+    - which
+    - yum-utils
+  fedora:
+    - bind-utils
+    - bzip2
+    - curl
+    - dnf-plugins-core
+    - dnf-utils
+    - git
+    - gzip
+    - htop
+    - iftop
+    - iotop
+    - iperf
+    - jq
+    - less
+    - lsof
+    - ncdu
+    - net-tools
+    - nfs-utils
+    - nmap
+    - nmap-ncat
+    - psmisc
+    - rsync
+    - screen
+    - strace
+    - sudo
+    - tar
+    - telnet
+    - tmux
+    - traceroute
+    - tree
+    - unzip
+    - wget
+    - whois
+    - xz
+  opensuse_leap_15:
+    - bind-utils
+    - bzip
+    - git
+    - gzip
+    - htop
+    - iftop
+    - iotop
+    - jq
+    - lsof
+    - ncdu
+    - net-tools
+    - netcat-openbsd
+    - nmap
+    - nvme-cli
+    - pciutils
+    - rsync
+    - screen
+    - strace
+    - telnet
+    - tmux
+    - traceroute
+    - tree
+    - unzip
+    - which
+  redhat:
+    - bind-utils
+    - bzip2
+    - curl
+    - git
+    - gzip
+    - htop
+    - iftop
+    - iotop
+    - iperf
+    - jq
+    - ncdu
+    - net-tools
+    - nmap
+    - nmap-ncat
+    - psmisc
+    - rsync
+    - screen
+    - strace
+    - telnet
+    - tmux
+    - traceroute
+    - tree
+    - unzip
+    - yum-utils
+  ubuntu:
+    - git
+    - htop
+    - iftop
+    - iotop
+    - iperf
+    - jq
+    - lsof
+    - ncat
+    - ncdu
+    - net-tools
+    - nmap
+    - nvme-cli
+    - pciutils
+    - pdsh
+    - rsync
+    - screen
+    - strace
+    - sudo
+    - telnet
+    - tmux
+    - traceroute
+    - tree
+    - unzip
+    - vim
+    - which
+
+packages_common: "{{ _packages_common[ansible_distribution|replace(' ','_')|lower ~'_'~ ansible_distribution_major_version] |
+  d(_packages_common[ansible_distribution|replace(' ','_')|lower] |
+  d(_packages_common[ansible_os_family|lower ~'_'~ ansible_distribution_major_version] |
+  d(_packages_common[ansible_os_family|lower] |
+  d([])))) }}"
+
+
+# Sets of packages
+_packages_additional:
+  default:
+    default: []
+  server:
+    default: []
+  client:
+    default: []
+  admin:
+    default:
+      - clustershell
+      - pdsh
+      - pssh
+      - vim-enhanced
+
+packages_additional: "{{ _packages_additional[packages_package_set|d('default')][ansible_distribution|replace(' ','_')|lower ~'_'~ ansible_distribution_major_version] |
+  d(_packages_additional[packages_package_set|d('default')][ansible_distribution|replace(' ','_')|lower] |
+  d(_packages_additional[packages_package_set|d('default')][ansible_os_family|lower ~'_'~ ansible_distribution_major_version] |
+  d(_packages_additional[packages_package_set|d('default')][ansible_os_family|lower] |
+  d(_packages_additional[packages_package_set|d('default')]['default'])))) }}"
