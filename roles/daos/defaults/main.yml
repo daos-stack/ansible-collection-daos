@@ -155,6 +155,9 @@ daos_server_engines:
         bdev_list: [/tmp/daos-bdev]
         bdev_size: 20
 
+# NOTE: Make sure that the daos_pools variable is defined in the
+#       group_vars/daos_admin/daos or group_vars/all/daos files!
+#       If defined elsewhere, the pools will not get created.
 daos_pools: []
   # - label: pool1
   #   size: 2TB

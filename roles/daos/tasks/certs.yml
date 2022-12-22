@@ -118,6 +118,14 @@
         src: "{{ daos_certs_gen_ca_dir }}/certs/admin.key",
         dest: "{{ daos_admin_certs_dir }}/admin.key"
       }
+    - {
+        src: "{{ daos_certs_gen_ca_dir }}/certs/admin.crt",
+        dest: "{{ daos_certs_dir }}/admin.crt"
+      }
+    - {
+        src: "{{ daos_certs_gen_ca_dir }}/certs/admin.key",
+        dest: "{{ daos_certs_dir }}/admin.key"
+      }
   loop_control:
     label: "{{ item.dest }}"
   delegate_to: "{{ groups['daos_admins'][0] }}"
@@ -127,7 +135,7 @@
   ansible.builtin.file:
     path: /etc/daos/certs
     state: directory
-    recurse: yes
+    recurse: true
     owner: "{{ ansible_local.daos.iommu_enabled | ternary(daos_server_user, 'root') }}"
     group: "{{ ansible_local.daos.iommu_enabled | ternary(daos_server_user, 'root') }}"
   when: daos_role_server in daos_roles
@@ -136,16 +144,43 @@
   ansible.builtin.file:
     path: /etc/daos/certs
     state: directory
-    recurse: yes
+    recurse: true
     owner: "{{ daos_agent_user }}"
     group: "{{ daos_agent_user }}"
   when: daos_role_client in daos_roles
 
-- name: Set cert permissions (DAOS admin)
+- name: Set cert permissions (DAOS admin home dir)
   ansible.builtin.file:
     path: "{{ daos_admin_certs_dir }}"
     state: directory
-    recurse: yes
+    recurse: true
     owner: "{{ daos_admin_user }}"
     group: "{{ daos_admin_user }}"
+  when: daos_role_admin in daos_roles
+
+- name: Set cert permissions (admin certs)
+  ansible.builtin.file:
+    path: "{{ daos_admin_certs_dir }}"
+    state: directory
+    owner: "{{ daos_admin_user }}"
+    group: "{{ daos_admin_user }}"
+  loop:
+    - {
+        path: "{{ daos_certs_dir }}/daosCA.crt",
+        owner: root,
+        group: root,
+        mode: '0644'
+      }
+    - {
+        path: "{{ daos_certs_dir }}/admin.crt",
+        owner: "{{ daos_admin_user }}",
+        group: "{{ daos_admin_user }}",
+        mode: '0644'
+      }
+    - {
+        path: "{{ daos_certs_dir }}/admin.key",
+        owner: "{{ daos_admin_user }}",
+        group: "{{ daos_admin_user }}",
+        mode: '0600'
+      }
   when: daos_role_admin in daos_roles
