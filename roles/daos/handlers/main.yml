@@ -3,15 +3,15 @@
 
 # If the daos_server service is restarted, then all daos_agent services should
 # be restarted.
-- name: restart daos_server service
+- name: Restart daos_server service
   ansible.builtin.service:
     name: daos_server
     state: restarted
   when: daos_role_server in daos_roles
-  notify: restart daos_agent service
+  notify: Restart daos_agent service
   tags: all
 
-- name: restart daos_agent service
+- name: Restart daos_agent service
   ansible.builtin.service:
     name: daos_agent
     state: restarted

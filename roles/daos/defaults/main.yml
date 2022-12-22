@@ -78,13 +78,13 @@ daos_deploy_certs: "{{ not (daos_transport_config_allow_insecure | bool) }}"
 
 # If true, then the cert gen script will be run to generate self signed certs.
 # If false, then it will be assumed that the certs have already been generated
-# and are located in the path specified in the daos_certs_gen_CA_dir variable.
+# and are located in the path specified in the daos_certs_gen_ca_dir variable.
 daos_certs_gen_enable: true
 daos_certs_gen_script_path: /usr/lib64/daos/certgen/gen_certificates.sh
 
 # The gen_certificates.sh will create a daosCA directory within in the daos_certs_gen_dir
 daos_certs_gen_dir: /etc/daos
-daos_certs_gen_CA_dir: /etc/daos/daosCA
+daos_certs_gen_ca_dir: /etc/daos/daosCA
 daos_certs_dir: /etc/daos/certs
 
 daos_admin_config_dir: "/home/{{ daos_admin_user }}/daos"

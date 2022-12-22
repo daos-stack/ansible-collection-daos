@@ -7,6 +7,8 @@
       ansible.builtin.copy:
         src: /etc/hosts
         dest: /tmp/hosts-from-controller
+        mode: '0644'
+
     - name: "Include io500"
       ansible.builtin.include_role:
         name: "io500"

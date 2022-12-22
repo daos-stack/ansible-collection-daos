@@ -3,8 +3,10 @@
 
 # See https://daosio.atlassian.net/browse/DAOS-11637
 - name: Implement workaround for DAOS-11637
+  when: (daos_wa_daos_11637_enabled | default(False) | bool) and
+        (ansible_distribution_version != '15.3')
   block:
-    - name: Add old 15.3 repo - workaround for DAOS-11637
+    - name: "Add old 15.3 repo - workaround for DAOS-11637"
       ansible.builtin.shell: |
         if ! zypper lr -E -a | grep -q repo-oss-15.3; then
           zypper addrepo \
@@ -27,9 +29,6 @@
         owner: root
         group: root
         mode: '0644'
-  when:
-    - daos_wa_daos_11637_enabled | default(False) | bool == True
-    - ansible_distribution_version != '15.3'
 
 - name: Create repo file
   ansible.builtin.template:
@@ -41,7 +40,7 @@
   register: daos_repo_file
 
 - name: Refresh DAOS packages repo
-  command: zypper --gpg-auto-import-keys refresh daos
+  ansible.builtin.command: zypper --gpg-auto-import-keys refresh daos
   when: daos_repo_file.changed
 
 - name: Install dependencies

@@ -27,7 +27,7 @@ daos_config_version: '{{ _daos_config_version["v" ~ daos_major_minor_version] | 
 # DAOS packages to install depending on the value of daos_role
 daos_pkgs:
   admin:
-    - "{{ daos_version is version('2.2', '<') | ternary('daos-server','daos-admin') }}"
+    - "{{ daos_version is version('2.2', '<') | ternary('daos-server', 'daos-admin') }}"
   client:
     - daos-client
   client-test:
@@ -140,7 +140,7 @@ daos_repos:
   - alias: daos-source
     name: DAOS v{{ daos_version }} Source Packages
     baseurl: "{{ daos_repo_urls.source }}"
-    enabled: "{{ daos_repo_enable_debug  | d(false) | bool | ternary('0', '1') }}"
+    enabled: "{{ daos_repo_enable_debug | default(false) | bool | ternary('0', '1') }}"
     gpgcheck: 1
     gpgkey: "{{ daos_repo_gpg_key_url }}"
 

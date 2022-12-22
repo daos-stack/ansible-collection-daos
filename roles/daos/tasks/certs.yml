@@ -6,7 +6,7 @@
   args:
     cmd: "{{ daos_certs_gen_script_path }}"
     chdir: "{{ daos_certs_gen_dir }}"
-    creates: "{{ daos_certs_gen_CA_dir }}"
+    creates: "{{ daos_certs_gen_ca_dir }}"
   when: (daos_certs_gen_enable | default(false) | bool) and
         inventory_hostname == groups['daos_admins'][0]
 
@@ -33,7 +33,7 @@
   when: daos_role_admin in daos_roles
 
 - name: Copy server certs
-  ansible.builtin.synchronize:
+  ansible.posix.synchronize:
     src: "{{ item.src }}"
     dest: "{{ item.dest }}"
     owner: false
@@ -45,19 +45,19 @@
     mode: push
   loop:
     - {
-        src: "{{ daos_certs_gen_CA_dir }}/certs/daosCA.crt",
+        src: "{{ daos_certs_gen_ca_dir }}/certs/daosCA.crt",
         dest: "/etc/daos/certs/daosCA.crt"
       }
     - {
-        src: "{{ daos_certs_gen_CA_dir }}/certs/server.crt",
+        src: "{{ daos_certs_gen_ca_dir }}/certs/server.crt",
         dest: "/etc/daos/certs/server.crt"
       }
     - {
-        src: "{{ daos_certs_gen_CA_dir }}/certs/server.key",
+        src: "{{ daos_certs_gen_ca_dir }}/certs/server.key",
         dest: "/etc/daos/certs/server.key"
       }
     - {
-        src: "{{ daos_certs_gen_CA_dir }}/certs/agent.crt",
+        src: "{{ daos_certs_gen_ca_dir }}/certs/agent.crt",
         dest: "/etc/daos/certs/clients/agent.crt"
       }
   loop_control:
@@ -66,7 +66,7 @@
   when: daos_role_server in daos_roles
 
 - name: Copy client certs
-  ansible.builtin.synchronize:
+  ansible.posix.synchronize:
     src: "{{ item.src }}"
     dest: "{{ item.dest }}"
     owner: false
@@ -78,15 +78,15 @@
     mode: push
   loop:
     - {
-        src: "{{ daos_certs_gen_CA_dir }}/certs/daosCA.crt",
+        src: "{{ daos_certs_gen_ca_dir }}/certs/daosCA.crt",
         dest: "/etc/daos/certs/daosCA.crt"
       }
     - {
-        src: "{{ daos_certs_gen_CA_dir }}/certs/agent.crt",
+        src: "{{ daos_certs_gen_ca_dir }}/certs/agent.crt",
         dest: "/etc/daos/certs/agent.crt"
       }
     - {
-        src: "{{ daos_certs_gen_CA_dir }}/certs/agent.key",
+        src: "{{ daos_certs_gen_ca_dir }}/certs/agent.key",
         dest: "/etc/daos/certs/agent.key"
       }
   loop_control:
@@ -95,7 +95,7 @@
   when: daos_role_client in daos_roles
 
 - name: Copy admin certs
-  ansible.builtin.synchronize:
+  ansible.posix.synchronize:
     src: "{{ item.src }}"
     dest: "{{ item.dest }}"
     owner: false
@@ -107,15 +107,15 @@
     mode: push
   loop:
     - {
-        src: "{{ daos_certs_gen_CA_dir }}/certs/daosCA.crt",
+        src: "{{ daos_certs_gen_ca_dir }}/certs/daosCA.crt",
         dest: "{{ daos_admin_certs_dir }}/daosCA.crt"
       }
     - {
-        src: "{{ daos_certs_gen_CA_dir }}/certs/admin.crt",
+        src: "{{ daos_certs_gen_ca_dir }}/certs/admin.crt",
         dest: "{{ daos_admin_certs_dir }}/admin.crt"
       }
     - {
-        src: "{{ daos_certs_gen_CA_dir }}/certs/admin.key",
+        src: "{{ daos_certs_gen_ca_dir }}/certs/admin.key",
         dest: "{{ daos_admin_certs_dir }}/admin.key"
       }
   loop_control:

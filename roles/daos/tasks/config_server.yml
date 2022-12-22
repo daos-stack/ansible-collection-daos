@@ -9,7 +9,7 @@
     group: root
     mode: '0644'
     backup: true
-  notify: restart daos_server service
+  notify: Restart daos_server service
 
 # If iommu is not enabled, then the daos_server service must run as root.
 - name: Set user and group in daos_server service

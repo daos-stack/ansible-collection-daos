@@ -9,4 +9,4 @@
     group: root
     mode: '0644'
     backup: true
-  notify: restart daos_agent service
+  notify: Restart daos_agent service

@@ -2,30 +2,24 @@
 # tuned related tasks for the tune role
 
 - name: Install Tuned
-  package:
+  ansible.builtin.package:
     name: tuned
     state: present
 
 - name: Create /etc/tuned/tuned-main.conf
-  template:
+  ansible.builtin.template:
     src: etc/tuned/tuned-main.conf.j2
     dest: /etc/tuned/tuned-main.conf
     owner: root
     group: root
     mode: '0644'
-  notify: restart tuned
+  notify: Restart tuned
 
 - name: Enable Tuned
-  service:
+  ansible.builtin.service:
     name: tuned
     state: started
     enabled: yes
-
-# - name: Register active profile
-#   ansible.builtin.shell:
-#     cmd: "tuned-adm active | sed 's/Current active profile: //'"
-#   register: tune_tuned_active_profile
-#   changed_when: false
 
 - name: Install tuned packages
   ansible.builtin.package:
@@ -56,7 +50,7 @@
   when: tune_tuned_use_recommended_profile | bool
 
 - name: Set profile facts
-  set_fact:
+  ansible.builtin.set_fact:
     tune_tuned_active_profile: "{{ tune_tuned_active_profile.content | b64decode | trim }}"
     tune_tuned_recommended_profile: "{{ tune_tuned_recommended_profile_cmd.stdout | d('') }}"
 
@@ -65,17 +59,17 @@
     var: tune_tuned_active_profile
 
 - name: Show recommended profile
-  debug:
+  ansible.builtin.debug:
     var: tune_tuned_recommended_profile
   when: tune_tuned_use_recommended_profile | bool
 
 - name: Set tuned recommended profile
-  ansible.builtin.command:
-    cmd: "tuned-adm profile {{ tune_tuned_recommended_profile.stdout }}"
+  ansible.builtin.command: "tuned-adm profile {{ tune_tuned_recommended_profile.stdout }}"
   when: tune_tuned_use_recommended_profile | bool
   changed_when: tune_tuned_active_profile != tune_tuned_recommended_profile
 
 - name: Configure daos_tuned profile
+  when: tune_tuned_profile | regex_search('^daos.*', ignorecase=True) is not none
   block:
     - name: Create custom tuned profile directory
       ansible.builtin.file:
@@ -93,10 +87,8 @@
         group: root
         mode: '0644'
       register: tune_tuned_conf
-  when: tune_tuned_profile | regex_search('^daos.*', ignorecase=True) is not none
 
 - name: Set tuned profile
-  ansible.builtin.command:
-    cmd: "tuned-adm profile {{ tune_tuned_profile }}"
+  ansible.builtin.command: "tuned-adm profile {{ tune_tuned_profile }}"
   when: not (tune_tuned_use_recommended_profile | bool)
   changed_when: tune_tuned_active_profile != tune_tuned_profile or tune_tuned_conf.changed

@@ -26,6 +26,7 @@
     state: directory
     owner: "{{ daos_server_user }}"
     group: "{{ daos_server_user }}"
+    mode: '0755'
   when: '"server" in daos_roles'
 
 - name: Enable daos_server service

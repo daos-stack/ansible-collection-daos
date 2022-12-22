@@ -1,15 +1,8 @@
 ---
-#
-# Main tasks for the reboot role
-#
+# main tasks for the reboot role
 
-- name: Install packages required to evaluate need for reboot
-  ansible.builtin.include_tasks: install.yml
-  args:
-    apply:
-      tags:
-        - reboot
-        - reboot_install
+- name: Import tasks to install packages required to evaluate need for reboot
+  ansible.builtin.import_tasks: install.yml
   tags:
     - reboot
     - reboot_install
@@ -17,23 +10,22 @@
 # Check for existence of /etc/ansible/reboot
 # If the file exists set reboot_do_reboot = yes
 - name: Set reboot_do_reboot variable
+  when: reboot_check_reboot_file | bool
+  tags:
+    - reboot
   block:
     - name: Stat /etc/ansible/reboot file
-      stat:
+      ansible.builtin.stat:
         path: /etc/ansible/reboot
       register: reboot_reboot_file
 
     - name: Set reboot flag if /etc/ansible/reboot file exists
-      set_fact:
+      ansible.builtin.set_fact:
         reboot_do_reboot: yes
         cacheable: no
       when:
         - reboot_reboot_file.stat.exists is defined
         - reboot_reboot_file.stat.exists | bool
-
-  when: reboot_check_reboot_file | bool
-  tags:
-    - reboot
 
 # Only evaluate output from OS utilities such as needrestart if
 # reboot_do_reboot = no
@@ -57,12 +49,8 @@
   tags:
     - reboot
 
-- name: Include tasks that perform the reboot
-  ansible.builtin.include_tasks: reboot.yml
-  args:
-    apply:
-      tags:
-        - reboot
+- name: Import tasks that perform the reboot
+  ansible.builtin.import_tasks: reboot.yml
   when: reboot_do_reboot | bool
   tags:
     - reboot

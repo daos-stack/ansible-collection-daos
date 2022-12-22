@@ -1,7 +1,14 @@
 ---
+# .ansible-lint
+
+profile: null
+
 exclude_paths:
-  repo/molecule/default/converge.yml
-  molecule/default/converge.yml
+ - molecule/
+ - tasks/main.yml
+
 skip_list:
-  - yaml[truthy]
-  - yaml[comments-indentation]
+  - no-handler
+
+warn_list:
+  - load-failure
