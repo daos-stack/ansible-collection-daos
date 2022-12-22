@@ -6,10 +6,10 @@
   hosts: all
   gather_facts: false
   become: false
+  any_errors_fatal: true
 
   tasks:
     - name: Wait for hosts to become ready
-      any_errors_fatal: true
       block:
         - name: Wait for port to be available
           ansible.builtin.wait_for:
@@ -21,7 +21,7 @@
 
         - name: Test connection
           ansible.builtin.wait_for_connection:
-            timeout: "{{ daos_wait_timeout }}"
+            timeout: 300
           changed_when: false
 
         - name: Test sudo
@@ -33,6 +33,8 @@
         - name: Unable to continue
           ansible.builtin.debug:
             msg: "One or more hosts are not available. Cannot continue."
+
+        - meta: end_play
 
 
 - name: DAOS cluster prep
@@ -46,6 +48,7 @@
     - role: daos_stack.daos.tune
     - role: daos_stack.daos.reboot
       when: inventory_hostname not in groups['daos_admins']
+
 
 - name: DAOS cluster installation and configuration
   hosts: all

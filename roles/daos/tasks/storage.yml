@@ -21,20 +21,23 @@
     state: started
   when: daos_role_client in daos_roles
 
-# FIX: This is very fragile.
+# FIX: This is very fragile!
 #      https://daosio.atlassian.net/browse/DAOS-12293
-- name: Determine if system is initialized
+- name: Determine if storage needs to be formatted
   ansible.builtin.shell: |
     set -o pipefail
-    if dmg system query -o {{ daos_admin_config_dir }}/daos_control.yml -v -j 2>/dev/null | jq -r '.error' | grep -q "system is uninitialized"; then
-      echo true
-    else
-      echo false
-    fi
+    dmg system query -o {{ daos_admin_config_dir }}/daos_control.yml -v -j 2>/dev/null | jq -r '.error'
   become_user: "{{ daos_admin_user }}"
   changed_when: false
-  when: inventory_hostname == groups['daos_admins'][0]
   register: daos_format_needed
+  failed_when: (daos_format_needed.rc == 1) and
+    ("system is uninitialized (storage format required?)" not in daos_format_needed.stdout)
+  when: inventory_hostname == groups['daos_admins'][0]
+
+- name: Show output from dmg system query command
+  debug:
+    var: daos_format_needed
+  when: inventory_hostname == groups['daos_admins'][0]
 
 - name: Format storage
   ansible.builtin.command: "dmg storage format -o {{ daos_admin_config_dir }}/daos_control.yml -l '{{ daos_server_ips }}'"
@@ -42,7 +45,7 @@
   become_user: "{{ daos_admin_user }}"
   when: (inventory_hostname == groups['daos_admins'][0]) and
         (daos_do_storage_format | bool) and
-        (daos_format_needed.stdout | bool)
+        ("system is uninitialized (storage format required?)" in daos_format_needed.stdout)
 
 # After running 'dmg storage format' running 'dmg system query' will block until
 # the system is initialized. We should not go on until all of the servers have
