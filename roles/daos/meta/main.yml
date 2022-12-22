@@ -1,5 +1,5 @@
 galaxy_info:
-  author: mark-olson
+  author: daos-stack
   description: Role to install DAOS
   company: Intel Corporation
   issue_tracker_url: https://daosio.atlassian.net/jira/software/c/projects/DAOS/issues

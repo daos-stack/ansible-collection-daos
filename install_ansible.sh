@@ -17,7 +17,7 @@
 ANS_DIR="${ANS_DIR:-${HOME}/ansible-daos}"
 ANS_VENV_DIR="${ANS_VENV_DIR:-${ANS_DIR}/.venv}"
 ANS_INSTALL_COLL="${ANS_INSTALL_COLL:-true}"
-ANS_COLL_GIT_URL="${ANS_COLL_GIT_URL:-git+https://github.com/mark-olson/ansible-collection-daos.git,develop}"
+ANS_COLL_GIT_URL="${ANS_COLL_GIT_URL:-git+https://github.com/daos-stack/ansible-collection-daos.git,develop}"
 ANS_CREATE_INV="${ANS_CREATE_INV:-true}"
 ANS_CREATE_CFG="${ANS_CREATE_CFG:-true}"
 PKG_MGR_UPDATE="${PKG_MGR_UPDATE:-false}"

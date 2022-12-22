@@ -1,6 +1,6 @@
 ---
 galaxy_info:
-  author: Mark A. Olson
+  author: daos-stack
   description: Reboots the host if a reboot is needed
   company: Intel Corporation
   license: Apache-2.0
