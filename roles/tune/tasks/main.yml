@@ -1,6 +1,7 @@
 ---
 # tasks file for the tune role
 
+# TODO: Determine if these facts are needed
 # - name: Install ansible facts for tune role
 #   ansible.builtin.import_tasks: facts.yml
 #   tags:
@@ -47,21 +48,25 @@
     - tune
     - tune_network
 
-- name: Include iommu.yml
-  ansible.builtin.include_tasks:
-    file: iommu.yml
-    apply:
-      tags:
-        - tune
-        - tune_iommu
-  when:
-    - tune_iommu_enable | default(false) | bool
-    - ansible_connection != "docker"
-    - ansible_connection != "podman"
-    - ansible_connection != "container"
-  tags:
-    - tune
-    - tune_iommu
+# Commented out iommu.yml because tuned is able to set intel_iommu=on in boot params
+# Will not delete this until it has been tested on multiple platforms
+# - name: Include iommu.yml
+#   ansible.builtin.include_tasks:
+#     file: iommu.yml
+#     apply:
+#       tags:
+#         - tune
+#         - tune_iommu
+#   when:
+#     - tune_iommu_enable | default(false) | bool
+#     - ansible_connection != "docker"
+#     - ansible_connection != "podman"
+#     - ansible_connection != "container"
+#   tags:
+#     - tune
+#     - tune_iommu
+
+
 
 # - name: Check for Tuned legacy
 #   shell: tuned --version &> /dev/null || echo -n "legacy"

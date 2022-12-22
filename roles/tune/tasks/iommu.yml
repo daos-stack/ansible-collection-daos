@@ -36,8 +36,8 @@
     path: /etc/default/grub
     regexp: '^(GRUB_CMDLINE_LINUX_DEFAULT=".*)"$'
     line: '\1 intel_iommu=on"'
-  when: tune_iommu_support.stdout | default(false) | bool and
-        not (tune_iommu_grub_enabled.stdout | bool)
+  when: (tune_iommu_support.stdout | default(false) | bool) and
+        (not (tune_iommu_grub_enabled.stdout | bool))
   register: tune_iommu_grub
 
 - name: Run grub2-mkconfig
