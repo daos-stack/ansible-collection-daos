@@ -98,4 +98,4 @@
     path: /etc/ansible/reboot
     state: touch
     mode: '0644'
-  changed_when: tune_tuned_active_profile != tune_tuned_profile or tune_tuned_conf.changed
+  when: tune_tuned_active_profile != tune_tuned_profile or tune_tuned_conf.changed
