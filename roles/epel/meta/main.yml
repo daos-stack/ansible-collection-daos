@@ -1,0 +1,18 @@
+galaxy_info:
+  author: Mark Olson
+  description: Role that installs the epel-release repository
+  company: Intel Corporation
+  issue_tracker_url: https://daosio.atlassian.net/jira/software/c/projects/DAOS/issues
+  license: Apache-2.0
+  min_ansible_version: "2.11"
+
+  platforms:
+    - name: EL
+      versions:
+        - "7"
+        - "8"
+        - "9"
+
+  galaxy_tags: []
+
+dependencies: []

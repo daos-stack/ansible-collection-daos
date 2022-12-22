@@ -1,0 +1,56 @@
+---
+# installation tasks file for daos on openSUSE Leap 15.x
+
+# See https://daosio.atlassian.net/browse/DAOS-11637
+- name: Implement workaround for DAOS-11637
+  block:
+    - name: Add old 15.3 repo - workaround for DAOS-11637
+      ansible.builtin.shell: |
+        if ! zypper lr -E -a | grep -q repo-oss-15.3; then
+          zypper addrepo \
+            --name "Main Repository - 15.3" \
+            --enable \
+            --refresh \
+            --gpgcheck \
+            --check \
+            https://download.opensuse.org/distribution/leap/15.3/repo/oss/ \
+            repo-oss-15.3
+          zypper ref
+          zypper install -y --repo repo-oss-15.3 ipmctl
+        fi
+      args:
+        creates: /etc/zypp/repo-oss-15.3.repo
+    - name: Deploy locks file - workaround for DAOS-11637
+      ansible.builtin.copy:
+        src: etc/zypp/locks_DAOS-11637
+        dest: /etc/zypp/locks
+        owner: root
+        group: root
+        mode: '0644'
+  when:
+    - daos_wa_daos_11637_enabled | default(False) | bool == True
+    - ansible_distribution_version != '15.3'
+
+- name: Create repo file
+  ansible.builtin.template:
+    src: "repofiles/daos.repo.{{ ansible_pkg_mgr }}.j2"
+    dest: '{{ daos_repo_files_dir }}/daos.repo'
+    owner: root
+    group: root
+    mode: '0644'
+  register: daos_repo_file
+
+- name: Refresh DAOS packages repo
+  command: zypper --gpg-auto-import-keys refresh daos
+  when: daos_repo_file.changed
+
+- name: Install dependencies
+  ansible.builtin.package:
+    name: '{{ daos_dep_pkgs }}'
+    state: present
+
+- name: Install DAOS packages
+  ansible.builtin.package:
+    name: '{{ daos_pkgs[item] | default([]) }}'
+    state: present
+  loop: '{{ daos_roles }}'

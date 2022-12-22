@@ -1,0 +1,44 @@
+#
+# {{ ansible_managed }}
+#
+# Global tuned configuration file.
+#
+
+# Whether to use daemon. Without daemon it just applies tuning. It is
+# not recommended, because many functions don't work without daemon,
+# e.g. there will be no D-Bus, no rollback of settings, no hotplug,
+# no dynamic tuning, ...
+daemon = {{ tune_tuned_daemon }}
+
+# Dynamicaly tune devices, if disabled only static tuning will be used.
+dynamic_tuning = {{ tune_tuned_dynamic_tuning }}
+
+# How long to sleep before checking for events (in seconds)
+# higher number means lower overhead but longer response time.
+sleep_interval = {{ tune_tuned_sleep_interval }}
+
+# Update interval for dynamic tunings (in seconds).
+# It must be multiply of the sleep_interval.
+update_interval = {{ tune_tuned_update_interval }}
+
+# Recommend functionality, if disabled "recommend" command will be not
+# available in CLI, daemon will not parse recommend.conf but will return
+# one hardcoded profile (by default "balanced").
+recommend_command = {{ tune_tuned_recommend_command }}
+
+# Whether to reapply sysctl from the e.g /etc/sysctl.conf, /etc/sysctl.d, ...
+# If enabled these sysctls will be re-appliead after Tuned sysctls are
+# applied, i.e. Tuned sysctls will not override system sysctls.
+reapply_sysctl = {{ tune_tuned_reapply_sysctl }}
+
+# Default priority assigned to instances
+default_instance_priority = {{ tune_tuned_default_instance_priority }}
+
+# Udev buffer size
+udev_buffer_size = {{ tune_tuned_udev_buffer_size }}
+
+# Log file count
+log_file_count = {{ tune_tuned_log_file_count }}
+
+# Log file max size
+log_file_max_size = {{ tune_tuned_log_file_max_size }}

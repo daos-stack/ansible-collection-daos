@@ -1,0 +1,9 @@
+---
+# tasks for packages role
+
+- name: Include install.yml
+  ansible.builtin.include_tasks: install.yml
+  args:
+    apply:
+      tags: packages
+  tags: packages

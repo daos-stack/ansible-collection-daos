@@ -1,0 +1,155 @@
+---
+# vars for daos role
+
+# DAOS config version  to install depending on the value of daos_role
+
+daos_major_version: "{{ daos_version.split('.')[0] }}"
+daos_minor_version: "{{ daos_version.split('.')[1] }}"
+daos_major_minor_version: "{{ daos_major_version ~ '.' ~ daos_minor_version }}"
+
+# In each DAOS version there are changes to the schema of the
+# /etc/daos/daos_*.yml config files.
+# Since the files are generated with a jinja2 template the correct template
+# must be used for the version of DAOS that is being installed.
+# If installing a version that is not listed here, use the value of
+# daos_config_version will be set to "latest" which is the set of templates
+# for the most current version of DAOS. Note that depending on when
+# the "latest" templates were last updated, the schema may not match
+# the version of DAOS you are attempting to install.
+_daos_config_version:
+  v2.0: "{{ daos_major_minor_version }}"
+  v2.2: "{{ daos_major_minor_version }}"
+  v2.3: "2.4"
+  v2.4: "{{ daos_major_minor_version }}"
+
+daos_config_version: '{{ _daos_config_version["v" ~ daos_major_minor_version] | d("latest") }}'
+
+# DAOS packages to install depending on the value of daos_role
+daos_pkgs:
+  admin:
+    - "{{ daos_version is version('2.2', '<') | ternary('daos-server','daos-admin') }}"
+  client:
+    - daos-client
+  client-test:
+    - daos-client
+    - daos-client-tests
+  server:
+    - daos-server
+  server-test:
+    - daos-server
+    - daos-server-tests
+
+# For known versions of DAOS we can list which distros are supported.
+# For an unknown version of DAOS we assume it's supported. This is done to allow
+# this role to install pre-release versions on different distros. However, there
+# is no guarantee that the install will be successful.
+_daos_distro_is_supported:
+  v1.2:
+    centos_7: true
+  v2.0:
+    centos_7: true
+    redhat_8: true
+    opensuse_leap_15.3: true
+    opensuse_leap_15.4: '{{ daos_workarounds["daos_11637"].enabled | d(False) | bool }}'
+  v2.2:
+    centos_7: true
+    redhat_8: true
+    opensuse_leap_15.3: true
+    opensuse_leap_15.4: '{{ daos_wa_daos_11637_enabled | d(False) | bool }}'
+
+daos_distro_is_supported: '{{  _daos_distro_is_supported["v"~ daos_major_minor_version][ansible_distribution|replace(" ","_")|lower ~"_"~ ansible_distribution_version] |
+  d(_daos_distro_is_supported["v"~ daos_major_minor_version][ansible_distribution|replace(" ","_")|lower ~"_"~ ansible_distribution_major_version] |
+  d(_daos_distro_is_supported["v"~ daos_major_minor_version][ansible_distribution|replace(" ","_")|lower] |
+  d(_daos_distro_is_supported["v"~ daos_major_minor_version][ansible_os_family|lower ~"_"~ ansible_distribution_major_version] |
+  d(_daos_distro_is_supported["v"~ daos_major_minor_version][ansible_os_family|lower] |
+  d(True))))) }}'
+
+_daos_install_task_file:
+  amazon: install_amazon.yml
+  debian: install_debian.yml
+  redhat: install_redhat.yml
+  suse: install_suse.yml
+  ubuntu: install_ubuntu.yml
+
+daos_install_task_file: '{{  _daos_install_task_file[ansible_distribution|replace(" ","_")|lower ~"_"~ ansible_distribution_version] |
+  d(_daos_install_task_file[ansible_distribution|replace(" ","_")|lower ~"_"~ ansible_distribution_major_version] |
+  d(_daos_install_task_file[ansible_distribution|replace(" ","_")|lower] |
+  d(_daos_install_task_file[ansible_os_family|lower ~"_"~ ansible_distribution_major_version] |
+  d(_daos_install_task_file[ansible_os_family|lower] |
+  d(""))))) }}'
+
+_daos_dep_pkgs:
+  default:
+    - lsof
+    - nvme-cli
+    - pciutils
+    - pdsh
+    - sudo
+    - vim
+    - which
+
+daos_dep_pkgs: '{{ _daos_dep_pkgs[ansible_distribution|replace(" ","_")|lower ~"_"~ ansible_distribution_version] |
+  d(_daos_dep_pkgs[ansible_distribution|replace(" ","_")|lower ~"_"~ ansible_distribution_major_version] |
+  d(_daos_dep_pkgs[ansible_distribution|replace(" ","_")|lower] |
+  d(_daos_dep_pkgs[ansible_os_family|lower ~"_"~ ansible_distribution_major_version] |
+  d(_daos_dep_pkgs[ansible_os_family|lower] |
+  d(_daos_dep_pkgs["default"]))))) }}'
+
+_daos_repo_files_dir:
+  apt: /etc/apt
+  yum: /etc/yum.repos.d
+  dnf: /etc/yum.repos.d
+  zypper: /etc/zypp/repos.d
+
+daos_repo_files_dir: '{{ _daos_repo_files_dir[ansible_pkg_mgr] }}'
+
+_daos_repo_urls:
+  centos_7:
+    packages: '{{ daos_repo_base_url }}/v{{ daos_version }}/CentOS7/packages/{{ ansible_architecture }}'
+    debug: '{{ daos_repo_base_url }}/v{{ daos_version }}/CentOS7/debug/{{ ansible_architecture }}'
+    source: '{{ daos_repo_base_url }}/v{{ daos_version }}/CentOS7/source'
+  redhat_8:
+    packages: '{{ daos_repo_base_url }}/v{{ daos_version }}/EL8/packages/{{ ansible_architecture }}'
+    debug: '{{ daos_repo_base_url }}/v{{ daos_version }}/EL8/debug/{{ ansible_architecture }}'
+    source: '{{ daos_repo_base_url }}/v{{ daos_version }}/EL8/source'
+  opensuse_leap_15:
+    packages: '{{ daos_repo_base_url }}/v{{ daos_version }}/Leap15/packages/{{ ansible_architecture }}'
+    debug: '{{ daos_repo_base_url }}/v{{ daos_version }}/Leap15/debug/{{ ansible_architecture }}'
+    source: '{{ daos_repo_base_url }}/v{{ daos_version }}/Leap15/source'
+
+daos_repo_urls: '{{ _daos_repo_urls[ansible_distribution|replace(" ","_")|lower ~"_"~ ansible_distribution_version] |
+  d(_daos_repo_urls[ansible_distribution|replace(" ","_")|lower ~"_"~ ansible_distribution_major_version] |
+  d(_daos_repo_urls[ansible_distribution|replace(" ","_")|lower] |
+  d(_daos_repo_urls[ansible_os_family|lower ~"_"~ ansible_distribution_major_version] |
+  d(_daos_repo_urls[ansible_os_family|lower] |
+  d())))) }}'
+
+daos_repos:
+  - alias: daos
+    name: "DAOS v{{ daos_version }} Packages"
+    baseurl: "{{ daos_repo_urls.packages }}"
+    enabled: 1
+    gpgcheck: 1
+    gpgkey: "{{ daos_repo_gpg_key_url }}"
+  - alias: daos-debug
+    name: "DAOS v{{ daos_version }} Debug Packages"
+    baseurl: "{{ daos_repo_urls.debug }}"
+    enabled: "{{ daos_repo_enable_source | d(false) | bool | ternary('0', '1') }}"
+    gpgcheck: 1
+    gpgkey: "{{ daos_repo_gpg_key_url }}"
+  - alias: daos-source
+    name: DAOS v{{ daos_version }} Source Packages
+    baseurl: "{{ daos_repo_urls.source }}"
+    enabled: "{{ daos_repo_enable_debug  | d(false) | bool | ternary('0', '1') }}"
+    gpgcheck: 1
+    gpgkey: "{{ daos_repo_gpg_key_url }}"
+
+_daos_admin_user_groups:
+  redhat: adm,systemd-journal
+
+daos_admin_user_groups: '{{ _daos_admin_user_groups[ansible_distribution|replace(" ","_")|lower ~"_"~ ansible_distribution_version] |
+  d(_daos_admin_user_groups[ansible_distribution|replace(" ","_")|lower ~"_"~ ansible_distribution_major_version] |
+  d(_daos_admin_user_groups[ansible_distribution|replace(" ","_")|lower] |
+  d(_daos_admin_user_groups[ansible_os_family|lower ~"_"~ ansible_distribution_major_version] |
+  d(_daos_admin_user_groups[ansible_os_family|lower] |
+  d(""))))) }}'

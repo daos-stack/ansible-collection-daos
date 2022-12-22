@@ -1,0 +1,10 @@
+---
+# handlers file for the tune role
+
+- name: restart tuned
+  service:
+    name: tuned
+    state: restarted
+  tags:
+    - tune
+    - tune_tuned

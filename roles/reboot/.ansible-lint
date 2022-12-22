@@ -1,0 +1,7 @@
+---
+exclude_paths:
+  repo/molecule/default/converge.yml
+  molecule/default/converge.yml
+skip_list:
+  - yaml[truthy]
+  - yaml[comments-indentation]

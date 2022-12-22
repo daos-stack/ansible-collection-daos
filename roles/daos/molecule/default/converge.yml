@@ -1,0 +1,16 @@
+---
+
+- name: Converge
+  hosts: all
+  gather_facts: true
+
+  vars:
+    daos_roles:
+      - server
+      - client
+      - admin
+
+  tasks:
+    - name: "Include daos role"
+      ansible.builtin.include_role:
+        name: "daos"

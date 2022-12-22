@@ -1,0 +1,55 @@
+---
+# main tasks file for daos role
+
+- name: Import assert.yml
+  ansible.builtin.import_tasks: assert.yml
+  tags:
+    - daos
+    - daos_install
+    - daos_config
+    - daos_certs
+    - daos_storage
+
+- name: Install ansible facts for daos
+  ansible.builtin.import_tasks: facts.yml
+  tags:
+    - daos
+    - daos_install
+    - daos_config
+    - daos_certs
+    - daos_storage
+
+- name: Include distro family specific install.yml
+  ansible.builtin.include_tasks:
+    file: '{{ daos_install_task_file }}'
+    apply:
+      tags:
+        - daos
+        - daos_install
+  tags:
+    - daos
+    - daos_install
+
+- name: Include certificate deployment tasks
+  ansible.builtin.import_tasks: certs.yml
+  when: daos_deploy_certs
+  tags:
+    - daos
+    - daos_certs
+
+- name: Include config tasks
+  ansible.builtin.import_tasks: config.yml
+  tags:
+    - daos
+    - daos_config
+
+- name: Include storage management tasks
+  ansible.builtin.include_tasks:
+    file: storage.yml
+    apply:
+      tags:
+        - daos
+        - daos_storage
+  tags:
+    - daos
+    - daos_storage

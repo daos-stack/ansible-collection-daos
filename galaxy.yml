@@ -1,0 +1,25 @@
+namespace: "daos_stack"
+name: "daos"
+version: "1.0.0"
+readme: "README.md"
+authors:
+  - "mark-olson"
+description: "A collection of roles and playbooks for managing DAOS clusters."
+license:
+  - "Apache-2.0"
+license_file: "LICENSE"
+tags:
+  - "daos"
+  - "storage"
+dependencies:
+  "community.general": ">=5.7.0"
+repository: "http://github.com/mark-olson/ansible-collection-daos"
+documentation: "http://github.com/mark-olson/ansible-collection-daos/blob/master/README.md"
+homepage: http://daos.io
+issues: "http://github.com/mark-olson/ansible-collection-daos/issues"
+
+# A list of file glob-like patterns used to filter any files or directories that should not be included in the build
+# artifact. A pattern is matched from the relative path of the file or directory of the collection directory. This
+# uses 'fnmatch' to match the files or directories. Some directories and files like 'galaxy.yml', '*.pyc', '*.retry',
+# and '.git' are always filtered
+build_ignore: []

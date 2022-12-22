@@ -1,0 +1,62 @@
+---
+# network tuning tasks for the tune role
+
+- name: Get Network Manager connection name
+  ansible.builtin.shell: |
+    /usr/bin/nmcli -g GENERAL.CONNECTION \
+    device show {{ ansible_default_ipv4.interface }}
+  register: tune_nmcli_name
+  changed_when: false
+
+# TODO: Need to figure out how to set MTU on openSUSE Leap 15.
+#       This task will fail because nmcli is not present. Maybe use yast?
+- name: "Set MTU on {{ ansible_default_ipv4.interface }}"
+  community.general.nmcli:
+    conn_name: "{{ tune_nmcli_name.stdout }}"
+    mtu: "{{ tune_nic_default_ipv4_mtu | default('1500') }}"
+    type: ethernet
+    state: present
+  when: ansible_os_family | lower != "suse"
+
+# FIX: This is failing
+#   TASK [daos_stack.daos.tune : Auto configure combined NIC queues] ********************************************************************************************************
+#   fatal: [maolson-daos-client-001]: FAILED! => {"changed": false, "changed_when_result": "The conditional check 'tune_nic_queues_auto.stderr is not search(\"unmodified\")' failed. The error was: error while evaluating conditional (tune_nic_queues_auto.stderr is not search(\"unmodified\")): 'dict object' has no attribute 'stderr'. 'dict object' has no attribute 'stderr'", "msg": "Unsupported parameters for (ansible.legacy.command) module: warn. Supported parameters include: removes, chdir, strip_empty_ends, executable, _uses_shell, creates, _raw_params, argv, stdin_add_newline, stdin."}
+#   fatal: [maolson-daos-client-002]: FAILED! => {"changed": false, "changed_when_result": "The conditional check 'tune_nic_queues_auto.stderr is not search(\"unmodified\")' failed. The error was: error while evaluating conditional (tune_nic_queues_auto.stderr is not search(\"unmodified\")): 'dict object' has no attribute 'stderr'. 'dict object' has no attribute 'stderr'", "msg": "Unsupported parameters for (ansible.legacy.command) module: warn. Supported parameters include: _uses_shell, strip_empty_ends, removes, _raw_params, argv, stdin, executable, creates, chdir, stdin_add_newline."}
+#   fatal: [maolson-daos-server-0001]: FAILED! => {"changed": false, "changed_when_result": "The conditional check 'tune_nic_queues_auto.stderr is not search(\"unmodified\")' failed. The error was: error while evaluating conditional (tune_nic_queues_auto.stderr is not search(\"unmodified\")): 'dict object' has no attribute 'stderr'. 'dict object' has no attribute 'stderr'", "msg": "Unsupported parameters for (ansible.legacy.command) module: warn. Supported parameters include: stdin_add_newline, removes, _raw_params, chdir, _uses_shell, strip_empty_ends, stdin, creates, executable, argv."}
+#   fatal: [maolson-daos-server-0002]: FAILED! => {"changed": false, "changed_when_result": "The conditional check 'tune_nic_queues_auto.stderr is not search(\"unmodified\")' failed. The error was: error while evaluating conditional (tune_nic_queues_auto.stderr is not search(\"unmodified\")): 'dict object' has no attribute 'stderr'. 'dict object' has no attribute 'stderr'", "msg": "Unsupported parameters for (ansible.legacy.command) module: warn. Supported parameters include: removes, strip_empty_ends, argv, stdin_add_newline, chdir, executable, stdin, _uses_shell, creates, _raw_params."}
+#   fatal: [maolson-daos-admin-001]: FAILED! => {"changed": false, "changed_when_result": "The conditional check 'tune_nic_queues_auto.stderr is not search(\"unmodified\")' failed. The error was: error while evaluating conditional (tune_nic_queues_auto.stderr is not search(\"unmodified\")): 'dict object' has no attribute 'stderr'. 'dict object' has no attribute 'stderr'", "msg": "Unsupported parameters for (ansible.legacy.command) module: warn. Supported parameters include: strip_empty_ends, stdin_add_newline, executable, argv, _uses_shell, stdin, removes, creates, chdir, _raw_params."}
+# - name: Auto configure combined NIC queues
+#   ansible.builtin.shell:
+#     executable: /bin/bash
+#     cmd: |
+#       nr_cpus=$(lscpu -p | grep -v '^#' | sort -t, -k 2,4 -u | wc -l)
+#       hw_queues=$(/usr/sbin/ethtool -l {{ ansible_default_ipv4.interface }} | \
+#                   grep -A4 maximums | tail -n 1 | cut -d':' -f2)
+#       queues=$(( nr_cpus > hw_queues ? hw_queues : nr_cpus))
+#       /usr/sbin/ethtool -L {{ ansible_default_ipv4.interface }} combined $queues
+#     warn: false
+#   register: tune_nic_queues_auto
+#   failed_when: tune_nic_queues_auto.rc != 0 and tune_nic_queues_auto.stderr is not search("unmodified")
+#   changed_when: tune_nic_queues_auto.stderr is not search("unmodified")
+#   when: tune_nic_queues_auto_enabled | default(false) | bool
+
+- name: Register current combined NIC queues
+  ansible.builtin.shell:
+    executable: /bin/bash
+    cmd: |
+      /usr/sbin/ethtool -l "{{ ansible_default_ipv4.interface }}" | \
+      grep -A4 Current | grep Combined | awk '{print $2}'
+  register: tune_nic_queues_current
+  changed_when: false
+
+- name: Set combined NIC queues
+  ansible.builtin.shell:
+    executable: /bin/bash
+    cmd: |
+      /usr/sbin/ethtool -L "{{ ansible_default_ipv4.interface }}" \
+      combined "{{ tune_nic_queues_combined }}"
+    warn: false
+  register: tune_nic_queues
+  failed_when: tune_nic_queues.rc != 0 and tune_nic_queues.stderr is not search("unmodified")
+  changed_when: tune_nic_queues_current.stdout | int != tune_nic_queues_combined | int
+  when: not (tune_nic_queues_auto_enabled | default(false) | bool)

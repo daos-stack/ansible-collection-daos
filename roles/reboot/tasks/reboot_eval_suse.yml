@@ -1,0 +1,29 @@
+---
+#
+# SUSE based distro specific tasks for the reboot role
+# Tasks to determine the need to reboot
+#
+
+- name: RedHat family specific check to determine if reboot is required
+  block:
+    - name: Determine if a reboot is required
+      ansible.builtin.command: zypper ps -s
+      check_mode: no
+      register: reboot_suse_needsrestarting
+      changed_when: reboot_suse_needsrestarting.rc == 1
+      failed_when: reboot_suse_needsrestarting.rc not in [ 0, 1 ]
+      when:
+        - reboot_suse_needsrestart_executable is defined
+        - reboot_suse_needsrestart_executable.stat.exists
+
+    - name: Set reboot flag if a reboot is required
+      ansible.builtin.set_fact:
+        reboot_do_reboot: yes
+        cacheable: no
+      when: reboot_suse_needsrestarting.changed
+  when:
+    - ansible_connection != "docker"
+    - ansible_connection != "container"
+    - ansible_connection != "podman"
+  tags:
+    - reboot

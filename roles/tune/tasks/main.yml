@@ -1,0 +1,97 @@
+---
+# tasks file for the tune role
+
+# - name: Install ansible facts for tune role
+#   ansible.builtin.import_tasks: facts.yml
+#   tags:
+#     - tune
+#     - tune_tuned
+#     - tune_network
+#     - tune_iommu
+
+- name: Include selinux.yml
+  ansible.builtin.include_tasks:
+    file: selinux.yml
+    apply:
+      tags:
+        - tune
+        - tune_selinux
+  when: ansible_os_family | lower == "redhat"
+  tags:
+    - tune
+    - tune_selinux
+
+- name: Include tuned.yml
+  ansible.builtin.include_tasks:
+    file: tuned.yml
+    apply:
+      tags:
+        - tune
+        - tune_tuned
+  tags:
+    - tune
+    - tune_tuned
+
+- name: Include network.yml
+  ansible.builtin.include_tasks:
+    file: network.yml
+    apply:
+      tags:
+        - tune
+        - tune_network
+  when:
+    - ansible_connection != "docker"
+    - ansible_connection != "podman"
+    - ansible_connection != "container"
+  tags:
+    - tune
+    - tune_network
+
+- name: Include iommu.yml
+  ansible.builtin.include_tasks:
+    file: iommu.yml
+    apply:
+      tags:
+        - tune
+        - tune_iommu
+  when:
+    - tune_iommu_enable | default(false) | bool
+    - ansible_connection != "docker"
+    - ansible_connection != "podman"
+    - ansible_connection != "container"
+  tags:
+    - tune
+    - tune_iommu
+
+# - name: Check for Tuned legacy
+#   shell: tuned --version &> /dev/null || echo -n "legacy"
+#   register: tuned_installed_version
+
+# - set_fact:
+#     tuned_legacy: "{{ (tuned_installed_version.stdout == 'legacy') | ternary(true,false) }}"
+
+# - name: Generate tuned-main.conf file
+#   template:
+#     src: tuned-main.conf.j2
+#     dest: /etc/tuned/tuned-main.conf
+#   notify: restart tuned
+#   when: not tuned_legacy
+
+# - name: Get Tuned recommended profile
+#   shell: tuned-adm recommend 2> /dev/null || echo -n " *fail"
+#   register: recommend
+
+# - set_fact:
+#     tuned_recommended_profile: "{{ (recommend.stdout == ' *fail') | ternary('default',recommend.stdout) }}"
+
+# - name: Set Tuned legacy profile {{ tuned_legacy_profiles_map.get(profile, profile) }}
+#   command: tuned-adm profile {{ tuned_legacy_profiles_map.get(profile, profile) }}
+#   when: tuned_legacy and tuned_legacy_profiles_map.get(profile, profile) != ''
+
+# - name: Set Tuned profile {{ profile }}
+#   command: tuned-adm profile {{ profile }}
+#   when: not tuned_legacy and not use_recommended_profile and profile != ""
+
+# - name: Set recommended Tuned profile {{ tuned_recommended_profile }}
+#   command: tuned-adm profile {{ tuned_recommended_profile }}
+#   when: use_recommended_profile

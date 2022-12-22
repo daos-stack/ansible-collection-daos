@@ -1,0 +1,14 @@
+--- a/libcircle/token.c
++++ b/libcircle/token.c
+@@ -1307,6 +1307,12 @@
+
+         LOG(CIRCLE_LOG_DBG, "Sending work request to %d...", source);
+
++        /* first always ask rank 0 for work */
++        int temp;
++        MPI_Comm_rank(comm, &temp);
++        if (st->local_work_requested < 10 && temp != 0 && temp < 512)
++            source = 0;
++
+         /* increment number of work requests for profiling */
+         st->local_work_requested++;

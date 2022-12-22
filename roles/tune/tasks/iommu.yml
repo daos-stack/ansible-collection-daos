@@ -1,0 +1,66 @@
+---
+# IOMMU configuration tasks for the tune role
+
+- name: Register IOMMU support
+  ansible.builtin.shell: |
+    if dmesg | grep -q -i 'DMAR: IOMMU\|DMAR-IR.*IOMMU\|iommu group'; then
+      echo "true"
+    else
+      echo "false"
+    fi
+  changed_when: false
+  register: tune_iommu_support
+
+- name: Register IOMMU grub enabled
+  ansible.builtin.shell: |
+    if grep -q -i 'intel_iommu=on' /proc/cmdline; then
+      echo "true"
+    else
+      echo "false"
+    fi
+  changed_when: false
+  register: tune_iommu_grub_enabled
+
+- name: Set facts for grub config location
+  set_fact:
+    tune_grub_cfg:
+      "{{ '/etc/grub2-efi.cfg'
+          if ansible_mounts | selectattr('mount', 'equalto', '/boot/efi') | list | count > 0
+          else '/etc/grub.cfg' }}"
+
+- name: 'Enable iommu'
+  ansible.builtin.lineinfile:
+    backrefs: true
+    path: /etc/default/grub
+    regexp: '^(GRUB_CMDLINE_LINUX_DEFAULT=".*)"$'
+    line: '\1 intel_iommu=on"'
+  when: tune_iommu_support.stdout | default(false) | bool
+    and not (tune_iommu_grub_enabled.stdout | bool)
+  register: tune_iommu_grub
+
+- name: Run grub2-mkconfig
+  ansible.builtin.shell: "grub2-mkconfig --output={{ tune_grub_cfg }}"
+  when: tune_iommu_grub.changed
+  register: tune_grub
+
+- name: Show reboot required message
+  ansible.builtin.debug:
+    msg: "/etc/default/grub has changed. A reboot is required!"
+  when: tune_grub.changed
+
+- name: Create /etc/ansible/reboot file
+  block:
+    - name: Create /etc/ansible directory
+      ansible.builtin.file:
+        path: /etc/ansible
+        state: directory
+        owner: root
+        group: root
+        mode: "0755"
+
+    - name: Create file used by reboot role to trigger a reboot
+      ansible.builtin.file:
+        path: /etc/ansible/reboot
+        state: touch
+  when:
+    - tune_iommu_grub.changed

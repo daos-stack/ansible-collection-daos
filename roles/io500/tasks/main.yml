@@ -1,0 +1,39 @@
+---
+# tasks file for io500
+
+- name: Include distro family specific install.yml
+  ansible.builtin.include_tasks: '{{ io500_install_task_file }}'
+  args:
+    apply:
+      tags:
+        - io500
+        - io500_install
+  tags:
+    - io500
+    - io500_install
+
+- name: Include install_oneapi.yml
+  ansible.builtin.include_tasks: install_oneapi.yml
+  args:
+    apply:
+      tags:
+        - io500
+        - io500_install
+        - io500_install_oneapi
+  tags:
+    - io500
+    - io500_install
+    - io500_install_oneapi
+
+- name: Include install_mpifileutils.yml
+  ansible.builtin.include_tasks: install_mpifileutils.yml
+  args:
+    apply:
+      tags:
+        - io500
+        - io500_install
+        - io500_install_mpifileutils
+  tags:
+    - io500
+    - io500_install
+    - io500_install_mpifileutils

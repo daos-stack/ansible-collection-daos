@@ -1,0 +1,35 @@
+---
+#
+# Tasks that perform a reboot
+#
+
+# Flush all handlers before rebooting
+- name: Flush handlers
+  ansible.builtin.meta: flush_handlers
+  tags:
+    - reboot
+
+- name: Perform reboot
+  block:
+    - name: Delete the /etc/ansible/reboot file if it exists
+      ansible.builtin.file:
+        path: /etc/ansible/reboot
+        state: absent
+      when: reboot_check_reboot_file | bool
+
+    - name: Reboot the host
+      ansible.builtin.reboot:
+        reboot_timeout: 3600
+        post_reboot_delay: 30
+
+    - name: Gather facts after reboot
+      ansible.builtin.setup:
+
+  when:
+    - not reboot_disable | bool
+    - reboot_do_reboot | bool
+    - ansible_connection != 'docker'
+    - ansible_connection != 'podman'
+    - ansible_connection != 'container'
+  tags:
+    - reboot

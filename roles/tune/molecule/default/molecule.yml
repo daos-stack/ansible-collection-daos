@@ -1,0 +1,168 @@
+---
+dependency:
+  name: galaxy
+  enabled: False
+  options:
+    role-file: requirements.yml
+    requirements-file: requirements.yml
+lint: |
+  set -e
+  yamllint .
+  # ansible-lint
+  # flake8
+driver:
+  name: podman
+
+platforms:
+  # - name: "bootstrap-${image:-fedora}-${tag:-latest}${TOX_ENVNAME}"
+  #   image: "${namespace:-robertdebock}/${image:-fedora}:${tag:-latest}"
+  #   command: /sbin/init
+  #   volumes:
+  #     - /sys/fs/cgroup:/sys/fs/cgroup:ro
+  #   privileged: True
+  #   pre_build_image: True
+
+  - name: tune-almalinux8
+    image: quay.io/mark_olson/almalinux8-systemd:latest
+    command: /sbin/init
+    tmpfs:
+      - /run
+      - /tmp
+    volumes:
+      - /sys/fs/cgroup:/sys/fs/cgroup:ro
+    privileged: True
+    pre_build_image: True
+    # capabilities:
+    #   - ALL
+  - name: tune-almalinux9
+    image: quay.io/mark_olson/almalinux9-systemd:latest
+    command: /sbin/init
+    tmpfs:
+      - /run
+      - /tmp
+    volumes:
+      - /sys/fs/cgroup:/sys/fs/cgroup:ro
+    privileged: True
+    pre_build_image: True
+  - name: tune-amazonlinux2
+    image: quay.io/mark_olson/amazonlinux2-systemd:latest
+    command: /sbin/init
+    tmpfs:
+      - /run
+      - /tmp
+    volumes:
+      - /sys/fs/cgroup:/sys/fs/cgroup:ro
+    privileged: True
+    pre_build_image: True
+  - name: tune-centos7
+    image: quay.io/mark_olson/centos7-systemd:latest
+    command: /sbin/init
+    tmpfs:
+      - /run
+      - /run/lock
+      - /tmp
+    volumes:
+      - /sys/fs/cgroup:/sys/fs/cgroup:rw
+    capabilities:
+      - ALL
+    security_opt:
+      - seccomp:unconfined
+    privileged: True
+    pre_build_image: True
+  - name: tune-debian11
+    image: quay.io/mark_olson/debian11-systemd:latest
+    command: /sbin/init
+    tmpfs:
+      - /run
+      - /tmp
+    volumes:
+      - /sys/fs/cgroup:/sys/fs/cgroup:ro
+    privileged: True
+    pre_build_image: True
+  - name: tune-fedora36
+    image: quay.io/mark_olson/fedora36-systemd:latest
+    command: /sbin/init
+    tmpfs:
+      - /run
+      - /tmp
+    volumes:
+      - /sys/fs/cgroup:/sys/fs/cgroup:ro
+    privileged: True
+    pre_build_image: True
+  - name: tune-opensuse-leap15.3
+    image: quay.io/mark_olson/opensuse-leap15.3-systemd:latest
+    command: /sbin/init
+    tmpfs:
+      - /run
+      - /tmp
+    volumes:
+      - /sys/fs/cgroup:/sys/fs/cgroup:ro
+    privileged: True
+    pre_build_image: True
+  - name: tune-opensuse-leap15.4
+    image: quay.io/mark_olson/opensuse-leap15.4-systemd:latest
+    command: /sbin/init
+    tmpfs:
+      - /run
+      - /tmp
+    volumes:
+      - /sys/fs/cgroup:/sys/fs/cgroup:ro
+    privileged: True
+    pre_build_image: True
+  - name: tune-rockylinux8
+    image: quay.io/mark_olson/rockylinux8-systemd:latest
+    command: /sbin/init
+    tmpfs:
+      - /run
+      - /tmp
+    volumes:
+      - /sys/fs/cgroup:/sys/fs/cgroup:ro
+    privileged: True
+    pre_build_image: True
+  - name: tune-rockylinux9
+    image: quay.io/mark_olson/rockylinux9-systemd:latest
+    command: /sbin/init
+    tmpfs:
+      - /run
+      - /tmp
+    volumes:
+      - /sys/fs/cgroup:/sys/fs/cgroup:ro
+    privileged: True
+    pre_build_image: True
+  # - name: tune-ubuntu2204
+  #   image: quay.io/mark_olson/ubuntu22.04-systemd:latest
+  #   command: /lib/systemd/systemd
+  #   tmpfs:
+  #     - /run/lock
+  #     - /run
+  #     - /tmp
+  #   volumes:
+  #     - /sys/fs/cgroup:/sys/fs/cgroup:ro
+  #   privileged: True
+  #   pre_build_image: True
+provisioner:
+  name: ansible
+verifier:
+  name: ansible
+scenario:
+  create_sequence:
+    - create
+  check_sequence:
+    - create
+    - converge
+    - check
+    - destroy
+  converge_sequence:
+    - create
+    - converge
+  destroy_sequence:
+    - destroy
+  test_sequence:
+    # - lint
+    # - destroy
+    # - syntax
+    - create
+    - converge
+    #- idempotence
+    #- verify
+    - destroy

@@ -1,0 +1,12 @@
+---
+# redhat OS family tasks for io500
+
+- name: Install the 'Development tools' group
+  ansible.builtin.package:
+    name: "@Development tools"
+    state: present
+
+- name: Install dependecies
+  ansible.builtin.package:
+    name: "{{ io500_dep_pkgs }}"
+    state: present

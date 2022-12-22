@@ -1,0 +1,81 @@
+---
+# defaults file for the tune role
+
+tune_tuned_use_recommended_profile: false
+
+# Name of the tuned profile to apply
+# To see a list of profiles run 'tuned-adm list' on target host.
+# If the tune_tuned_profile variable starts with "daos", then
+# a custom profile will be created in
+# /etc/tuned/{{ tune_tuned_profile }}/tuned.conf
+# The contents of the using tuned.conf file will be generated
+# from the the tune_tuned_daos_profile dictionary.
+tune_tuned_profile: "daos"
+
+# If tune_tuned_profile starts with "daos" then use this dictionary
+# to generate a tuned.conf. Each 1st level dictionary key will be
+# used to generate a section of the file. The child key/value pairs
+# will be used to create the values for the section.
+tune_tuned_daos_profile:
+  main:
+    summary: Customized network-latency tuned profile for DAOS
+    include: network-latency
+  sysctl:
+    # ============== gcp settings =====================
+    net.ipv4.tcp_rmem: 4096 87380 16777216
+    net.ipv4.tcp_wmem: 4096 16384 16777216
+    # ========= ibm bare metal settings ===============
+    ## Per CCE-80916-0: Set kernel.randomize_va_space: 2
+    # kernel.randomize_va_space: 2
+    # net.ipv4.tcp_max_syn_backlog: 65536
+    # net.ipv4.tcp_timestamps: 0
+    # net.ipv4.tcp_sack: 1
+    # net.core.netdev_max_backlog: 250000
+    # net.core.rmem_max: 16777216
+    # net.core.wmem_max: 16777216
+    # net.core.rmem_default: 16777216
+    # net.core.wmem_default: 16777216
+    # net.core.optmem_max: 16777216
+    # net.ipv4.tcp_rmem: 4096 87380 16777216
+    # net.ipv4.tcp_wmem: 4096 65536 16777216
+    # net.ipv4.tcp_low_latency: 1
+    # net.ipv4.tcp_adv_win_scale: 1
+    # net.core.somaxconn: 2048
+    # net.ipv4.neigh.ens1.gc_stale_time: 2000000
+    # net.ipv4.neigh.ens1.base_reachable_time_ms: 120000
+    # net.ipv4.neigh.ens1.mcast_solicit: 18
+
+# Settings for /etc/tuned/tuned-main.conf
+tune_tuned_daemon: 1
+tune_tuned_dynamic_tuning: 0
+tune_tuned_sleep_interval: 1
+tune_tuned_update_interval: 10
+tune_tuned_recommend_command: 1
+tune_tuned_reapply_sysctl: 1
+tune_tuned_default_instance_priority: 0
+tune_tuned_udev_buffer_size: 1MB
+tune_tuned_log_file_count: 2
+tune_tuned_log_file_max_size: 1MB
+
+
+#------------------------------------------------------------------------------
+# network settings
+#------------------------------------------------------------------------------
+
+# Set the MTU on the ansible_default_ipv4.interface
+tune_nic_default_ipv4_mtu: 9000
+
+# Automatically set the combined queue depth
+tune_nic_queues_auto_enabled: true
+
+# Set the combined queue depth to a specific value
+# Only used when tune_nic_queues_auto_enabled=false
+# This is used with the command:
+#   ethtool -L ens1 combined {{ tune_nic_queues_combined }}
+tune_nic_queues_combined: 16
+
+
+#------------------------------------------------------------------------------
+# iommu settings
+#------------------------------------------------------------------------------
+tune_iommu_enable: false

@@ -1,0 +1,18 @@
+galaxy_info:
+  author: Mark A. Olson
+  description: Installs named sets of packages
+  company: Intel Corporation
+  license: Apache-2.0
+
+  min_ansible_version: 2.11
+
+  platforms:
+    - name: EL
+      versions:
+        - "7"
+        - "8"
+        - "9"
+
+  galaxy_tags: []
+
+dependencies: []

@@ -1,0 +1,19 @@
+---
+# suse specific tasks for io500
+
+- name: Install zypper patterns
+  community.general.zypper:
+    name: "{{ item }}"
+    type: pattern
+    state: present
+  loop:
+    - devel_basis
+    - devel_C_C++
+    - devel_osc_build
+    - devel_python3
+    - devel_rpm_build
+
+- name: Install dependecies
+  ansible.builtin.package:
+    name: "{{ io500_dep_pkgs }}"
+    state: present
