@@ -10,6 +10,14 @@
     - reboot
 
 - name: Perform reboot
+  when:
+    - not reboot_disable | bool
+    - reboot_do_reboot | bool
+    - ansible_connection != 'docker'
+    - ansible_connection != 'podman'
+    - ansible_connection != 'container'
+  tags:
+    - reboot
   block:
     - name: Delete the /etc/ansible/reboot file if it exists
       ansible.builtin.file:
@@ -24,12 +32,3 @@
 
     - name: Gather facts after reboot
       ansible.builtin.setup:
-
-  when:
-    - not reboot_disable | bool
-    - reboot_do_reboot | bool
-    - ansible_connection != 'docker'
-    - ansible_connection != 'podman'
-    - ansible_connection != 'container'
-  tags:
-    - reboot

@@ -74,7 +74,7 @@
 #   template:
 #     src: tuned-main.conf.j2
 #     dest: /etc/tuned/tuned-main.conf
-#   notify: restart tuned
+#   notify: Restart tuned
 #   when: not tuned_legacy
 
 # - name: Get Tuned recommended profile

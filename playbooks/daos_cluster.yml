@@ -2,10 +2,43 @@
 # playbook:     daos_cluster.yml
 # playbook_fqn: daos_stack.daos.daos_cluster
 
+- name: Wait for hosts
+  hosts: all
+  gather_facts: false
+  become: false
+
+  tasks:
+    - name: Wait for hosts to become ready
+      any_errors_fatal: true
+      block:
+        - name: Wait for port to be available
+          ansible.builtin.wait_for:
+            port: "{{ ansible_port | default('22') }}"
+            timeout: 600
+          become: false
+          changed_when: false
+          when: ansible_connection is defined
+
+        - name: Test connection
+          ansible.builtin.wait_for_connection:
+            timeout: "{{ daos_wait_timeout }}"
+          changed_when: false
+
+        - name: Test sudo
+          ansible.builtin.command:
+            cmd: sudo --version
+          changed_when: false
+
+      rescue:
+        - name: Unable to continue
+          ansible.builtin.debug:
+            msg: "One or more hosts are not available. Cannot continue."
+
+
 - name: DAOS cluster prep
   hosts: all
-  gather_facts: yes
-  become: yes
+  gather_facts: true
+  become: true
 
   roles:
     - role: daos_stack.daos.epel
@@ -16,12 +49,12 @@
 
 - name: DAOS cluster installation and configuration
   hosts: all
-  gather_facts: yes
-  become: yes
+  gather_facts: true
+  become: true
 
   pre_tasks:
     - name: Create access_points group
-      add_host:
+      ansible.builtin.add_host:
         name: "{{ item }}"
         groups: access_points
       when: hostvars[item].is_access_point | default(false) | bool
@@ -30,8 +63,10 @@
       tags: always
 
     - name: Create daos_access_points IP list
-      set_fact:
-        daos_access_points: "{{ groups.access_points | map('extract', hostvars, 'ansible_default_ipv4') | map(attribute='address') | list }}"
+      ansible.builtin.set_fact:
+        daos_access_points: "{{ groups.access_points |
+          map('extract', hostvars, 'ansible_default_ipv4') |
+          map(attribute='address') | list }}"
       tags: always
 
   roles:

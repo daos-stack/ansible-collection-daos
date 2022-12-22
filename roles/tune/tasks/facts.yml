@@ -4,7 +4,7 @@
 #
 
 - name: Create facts directory
-  file:
+  ansible.builtin.file:
     path: '/etc/ansible/facts.d'
     state: directory
     owner: root
@@ -12,7 +12,7 @@
     mode: '0755'
 
 - name: Create tune facts script
-  template:
+  ansible.builtin.template:
     src: 'etc/ansible/facts.d/tune.fact.j2'
     dest: '/etc/ansible/facts.d/tune.fact'
     owner: root
@@ -21,6 +21,6 @@
   register: tune_fact_script
 
 - name: Reload facts
-  setup:
+  ansible.builtin.setup:
     filter: ansible_local
-  when: tune_fact_script.changed  # noqa 503
+  when: tune_fact_script.changed  # noqa: no-handler

@@ -5,6 +5,12 @@
 #
 
 - name: RedHat family specific check to determine if reboot is required
+  when:
+    - ansible_connection != "docker"
+    - ansible_connection != "container"
+    - ansible_connection != "podman"
+  tags:
+    - reboot
   block:
     - name: Determine if a reboot is required
       ansible.builtin.command: zypper ps -s
@@ -21,9 +27,3 @@
         reboot_do_reboot: yes
         cacheable: no
       when: reboot_suse_needsrestarting.changed
-  when:
-    - ansible_connection != "docker"
-    - ansible_connection != "container"
-    - ansible_connection != "podman"
-  tags:
-    - reboot

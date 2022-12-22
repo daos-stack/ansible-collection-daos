@@ -1,8 +1,11 @@
 ---
+
 - name: Converge
   hosts: all
   become: yes
   gather_facts: yes
 
-  roles:
-  - role: "{{ lookup('env', 'MOLECULE_PROJECT_DIRECTORY') | basename }}"
+  tasks:
+    - name: "Include daos role"
+      ansible.builtin.include_role:
+        name: "{{ lookup('env', 'MOLECULE_PROJECT_DIRECTORY') | basename }}"

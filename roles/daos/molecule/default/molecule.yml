@@ -11,6 +11,7 @@ lint: |
   yamllint .
   # ansible-lint
   # flake8
+
 driver:
   name: podman
 
@@ -130,6 +131,7 @@ platforms:
   #     - /sys/fs/cgroup:/sys/fs/cgroup:ro
   #   privileged: True
   #   pre_build_image: True
+
 provisioner:
   name: ansible
 verifier:

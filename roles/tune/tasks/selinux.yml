@@ -9,6 +9,7 @@
   register: tune_selinux_config
 
 - name: Create /etc/ansible/reboot file
+  when: tune_selinux_config.changed
   block:
     - name: Create /etc/ansible directory
       ansible.builtin.file:
@@ -16,11 +17,10 @@
         state: directory
         owner: root
         group: root
-        mode: "0755"
+        mode: '0755'
 
     - name: Create file used by reboot role to trigger a reboot
       ansible.builtin.file:
         path: /etc/ansible/reboot
         state: touch
-  when:
-    - tune_selinux_config.changed
+        mode: '0644'

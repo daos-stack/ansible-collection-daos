@@ -30,7 +30,7 @@
     state: directory
     owner: root
     group: root
-    mode: "0755"
+    mode: '0755'
   loop:
     - "{{ io500_mfu_root_dir }}"
     - "{{ io500_mfu_deps_dir }}"
@@ -52,9 +52,11 @@
   ansible.builtin.copy:
     src: libcircle_opt.patch
     dest: "{{ io500_libcircle_dir }}"
+    mode: '0644'
 
 - name: Apply libcircle patch
-  ansible.builtin.shell:  patch -p1 < libcircle_opt.patch
+  # noqa: command-instead-of-module
+  ansible.builtin.command:  patch -p1 < libcircle_opt.patch
   args:
     chdir: "{{ io500_libcircle_dir }}"
   changed_when: false
@@ -102,6 +104,7 @@
     dest: "{{ io500_mpifileutils_src_dir }}"
     single_branch: yes
     version: main
+  changed_when: false
 
 - name: Build mpifileutils
   ansible.builtin.shell: |
@@ -124,3 +127,4 @@
     chdir: "{{ io500_mfu_build_dir }}"
     executable: /bin/bash
     #creates: "{{ io500_mfu_install_dir }}/lib/libdtcmp.so"
+  changed_when: false # FIX

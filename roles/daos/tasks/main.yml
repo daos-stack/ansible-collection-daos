@@ -3,6 +3,8 @@
 
 - name: Import assert.yml
   ansible.builtin.import_tasks: assert.yml
+  run_once: yes
+  delegate_to: localhost
   tags:
     - daos
     - daos_install

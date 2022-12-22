@@ -33,6 +33,7 @@
   register: daos_admin_bashrc
 
 - name: Create .bashrc for daos admin user
+  # noqa: command-instead-of-module
   ansible.builtin.shell: |
     rsync -avh /etc/skel/ /home/{{ daos_admin_user }}/
     chown -R {{ daos_admin_user }}:{{ daos_admin_user }} /home/{{ daos_admin_user }}
@@ -40,7 +41,7 @@
     (daos_admin_bashrc.stat is defined and not daos_admin_bashrc.stat.exists) and
     (inventory_hostname == groups['daos_admins'][0])
 
-- name: "Add dmg alias to {{ daos_admin_user }} .bashrc"
+- name: "Add dmg alias to .bashrc for {{ daos_admin_user }}"
   ansible.builtin.lineinfile:
     path: "~/.bashrc"
     regexp: '^alias dmg=.*'
