@@ -2,7 +2,7 @@
 # ansible version locked down for ansible tower
 ansible-lint
 ansible-vagrant
-ansible==2.9.15
+ansible==4.2.0
 docker
 molecule==3.0.8
 molecule-docker
