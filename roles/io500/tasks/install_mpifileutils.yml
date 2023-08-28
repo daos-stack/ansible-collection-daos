@@ -126,14 +126,14 @@
   args:
     chdir: "{{ io500_mfu_build_dir }}"
     executable: /bin/bash
-    creates: "{{ io500_mfu_install_dir }}/lib/libdtcmp.so"
-    environment:
-      MY_DAOS_INSTALL_PATH: "{{ io500_daos_install_dir }}"
-      MY_MFU_INSTALL_PATH: "{{ io500_mfu_install_dir }}"
-      MY_MFU_SOURCE_PATH: "{{ io500_mfu_src_dir }}/mpifileutils"
-      MY_MFU_BUILD_PATH: "{{ io500_mfu_build_dir }}"
-      I_MPI_OFI_LIBRARY_INTERNAL: 0
-      I_MPI_OFI_PROVIDER: "tcp;ofi_rxm"
-      CFLAGS: "-I{{ io500_daos_install_dir }}/include -I /usr/include"
-      LDFLAGS: "-L{{ io500_daos_install_dir }}/lib64 -L/usr/lib64 -luuid -ldaos -ldfs -ldaos_common -lgurt -lpthread"
+    # creates: "{{ io500_mfu_install_dir }}/lib/libdtcmp.so"
+    # environment:
+    #   MY_DAOS_INSTALL_PATH: "{{ io500_daos_install_dir }}"
+    #   MY_MFU_INSTALL_PATH: "{{ io500_mfu_install_dir }}"
+    #   MY_MFU_SOURCE_PATH: "{{ io500_mfu_src_dir }}/mpifileutils"
+    #   MY_MFU_BUILD_PATH: "{{ io500_mfu_build_dir }}"
+    #   I_MPI_OFI_LIBRARY_INTERNAL: 0
+    #   I_MPI_OFI_PROVIDER: "tcp;ofi_rxm"
+    #   CFLAGS: "-I{{ io500_daos_install_dir }}/include -I /usr/include"
+    #   LDFLAGS: "-L{{ io500_daos_install_dir }}/lib64 -L/usr/lib64 -luuid -ldaos -ldfs -ldaos_common -lgurt -lpthread"
   changed_when: false # FIX
