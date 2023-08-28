@@ -1,6 +1,35 @@
 ---
 # tasks file for io500
 
+- name: Determine DAOS install path
+  block:
+    - name: Check if /opt/daos/lib64/libdaos_common.so exists
+      ansible.builtin.stat:
+        path: /opt/daos/lib64/libdaos_common.so
+      register: io500_opt_daos_stat
+      changed_when: false
+
+    - name: Set io500_daos_install_dir to /opt/daos if it exists
+      ansible.builtin.set_fact:
+        io500_daos_install_dir: /opt/daos
+      when: io500_opt_daos_stat.stat is defined and io500_opt_daos_stat.stat.exists
+
+    - name: Check if /usr/lib64/libdaos_common.so exists
+      ansible.builtin.stat:
+        path: /usr/lib64/libdaos_common.so
+      register: io500_usr_daos_stat
+      when: (io500_opt_daos_stat.stat|default({})).exists|default(false) == false
+      changed_when: false
+
+    - name: Set io500_daos_install_dir to /usr  if it exists
+      ansible.builtin.set_fact:
+        io500_daos_install_dir: /usr
+      when: io500_usr_daos_stat.stat is defined and io500_usr_daos_stat.stat.exists
+
+    - name: Display io500_daos_install_dir
+      ansible.builtin.debug:
+        var: io500_daos_install_dir
+
 - name: Include distro family specific install.yml
   ansible.builtin.include_tasks: '{{ io500_install_task_file }}'
   args:
