@@ -109,14 +109,6 @@
 - name: Build mpifileutils
   ansible.builtin.shell: |
     source /opt/intel/oneapi/setvars.sh
-    export MY_DAOS_INSTALL_PATH="{{ io500_daos_install_dir }}"
-    export MY_MFU_INSTALL_PATH="{{ io500_mfu_install_dir }}"
-    export MY_MFU_SOURCE_PATH="{{ io500_mfu_src_dir }}/mpifileutils"
-    export MY_MFU_BUILD_PATH="{{ io500_mfu_build_dir }}"
-    export I_MPI_OFI_LIBRARY_INTERNAL=0
-    export I_MPI_OFI_PROVIDER="tcp;ofi_rxm"
-    export CFLAGS="-I{{ io500_daos_install_dir }}/include -I /usr/include"
-    export LDFLAGS="-L{{ io500_daos_install_dir }}/lib64 -L/usr/lib64 -luuid -ldaos -ldfs -ldaos_common -lgurt -lpthread"
     /usr/local/tools/bin/cmake "${MY_MFU_SOURCE_PATH}" \
       -DENABLE_XATTRS=OFF \
       -DWITH_DTCMP_PREFIX="${MY_MFU_INSTALL_PATH}" \
@@ -127,13 +119,13 @@
     chdir: "{{ io500_mfu_build_dir }}"
     executable: /bin/bash
     # creates: "{{ io500_mfu_install_dir }}/lib/libdtcmp.so"
-    # environment:
-    #   MY_DAOS_INSTALL_PATH: "{{ io500_daos_install_dir }}"
-    #   MY_MFU_INSTALL_PATH: "{{ io500_mfu_install_dir }}"
-    #   MY_MFU_SOURCE_PATH: "{{ io500_mfu_src_dir }}/mpifileutils"
-    #   MY_MFU_BUILD_PATH: "{{ io500_mfu_build_dir }}"
-    #   I_MPI_OFI_LIBRARY_INTERNAL: 0
-    #   I_MPI_OFI_PROVIDER: "tcp;ofi_rxm"
-    #   CFLAGS: "-I{{ io500_daos_install_dir }}/include -I /usr/include"
-    #   LDFLAGS: "-L{{ io500_daos_install_dir }}/lib64 -L/usr/lib64 -luuid -ldaos -ldfs -ldaos_common -lgurt -lpthread"
+  environment:
+    MY_DAOS_INSTALL_PATH: "{{ io500_daos_install_dir }}"
+    MY_MFU_INSTALL_PATH: "{{ io500_mfu_install_dir }}"
+    MY_MFU_SOURCE_PATH: "{{ io500_mfu_src_dir }}/mpifileutils"
+    MY_MFU_BUILD_PATH: "{{ io500_mfu_build_dir }}"
+    I_MPI_OFI_LIBRARY_INTERNAL: 0
+    I_MPI_OFI_PROVIDER: "tcp;ofi_rxm"
+    CFLAGS: "-I{{ io500_daos_install_dir }}/include -I /usr/include"
+    LDFLAGS: "-L{{ io500_daos_install_dir }}/lib64 -L/usr/lib64 -luuid -ldaos -ldfs -ldaos_common -lgurt -lpthread"
   changed_when: false # FIX
