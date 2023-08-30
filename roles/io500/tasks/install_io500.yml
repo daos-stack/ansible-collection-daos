@@ -1,0 +1,27 @@
+---
+- name: Clone IO500 repo
+  ansible.builtin.git:
+    repo: https://github.com/IO500/io500.git
+    dest: "{{ io500_path }}"
+    version: "{{ io500_version }}"
+    force: true
+
+- name: Apply patch for IO500 prepare.sh script
+  ansible.posix.patch:
+    src: "prepare.sh.patch"
+    dest: "{{ io500_path }}/prepare.sh"
+
+- name: Apply patch for IO500 Makefile
+  ansible.posix.patch:
+    src: "Makefile.patch"
+    dest: "{{ io500_path }}/Makefile"
+
+- name: Run prepare.sh script
+  ansible.builtin.shell: |
+    export I_MPI_OFI_LIBRARY_INTERNAL=0
+    export I_MPI_OFI_PROVIDER="tcp;ofi_rxm"
+    source /opt/intel/oneapi/setvars.sh
+    "{{ io500_path }}/prepare.sh"
+  args:
+    chdir: "{{ io500_path }}"
+    executable: /bin/bash

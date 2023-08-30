@@ -66,3 +66,16 @@
     - io500
     - io500_install
     - io500_install_mpifileutils
+
+- name: Include install_io500.yml
+  ansible.builtin.include_tasks: install_io500.yml
+  args:
+    apply:
+      tags:
+        - io500
+        - io500_install
+        - io500_install_io500
+  tags:
+    - io500
+    - io500_install
+    - io500_install_io500

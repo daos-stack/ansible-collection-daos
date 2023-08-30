@@ -37,3 +37,7 @@ io500_dtcmp_dir: "{{ io500_mfu_deps_dir }}/{{ io500_dtcmp_src_url | basename | r
 # mpifileutils
 io500_mpifileutils_repo_url: https://github.com/hpc/mpifileutils.git
 io500_mpifileutils_src_dir: "{{ io500_mfu_src_dir }}/mpifileutils"
+
+# io500
+io500_version: "io500-sc22"
+io500_path: "/opt/{{ io500_version }}"
