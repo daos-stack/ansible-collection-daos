@@ -43,6 +43,7 @@
   become: true
 
   roles:
+    - role: daos_stack.daos.selinux
     - role: daos_stack.daos.epel
     - role: daos_stack.daos.packages
     - role: daos_stack.daos.tune

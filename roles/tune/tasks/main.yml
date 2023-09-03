@@ -10,18 +10,6 @@
 #     - tune_network
 #     - tune_iommu
 
-- name: Include selinux.yml
-  ansible.builtin.include_tasks:
-    file: selinux.yml
-    apply:
-      tags:
-        - tune
-        - tune_selinux
-  when: ansible_os_family | lower == "redhat"
-  tags:
-    - tune
-    - tune_selinux
-
 - name: Include tuned.yml
   ansible.builtin.include_tasks:
     file: tuned.yml
@@ -41,9 +29,7 @@
         - tune
         - tune_network
   when:
-    - ansible_connection != "docker"
-    - ansible_connection != "podman"
-    - ansible_connection != "container"
+    - ansible_connection not in [ "container", "docker", "podman", "community.docker.docker" ]
   tags:
     - tune
     - tune_network

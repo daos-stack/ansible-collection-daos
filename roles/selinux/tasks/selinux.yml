@@ -1,15 +1,20 @@
----
-# tasks to disable selinux
+# tasks file for selinux
+
+- name: Stat /etc/selinux/config
+  ansible.builtin.stat:
+    path: /etc/selinux/config
+  register: selinux_config_file
 
 - name: Disable selinux
   ansible.builtin.lineinfile:
     path: /etc/selinux/config
     regexp: "^SELINUX="
-    line: "SELINUX=disabled"
-  register: tune_selinux_config
+    line: "SELINUX={{ selinux_state }}"
+  when: selinux_config_file.stat is defined and selinux_config_file.stat.exists
+  register: selinux_config_state
 
 - name: Create /etc/ansible/reboot file
-  when: tune_selinux_config.changed
+  when: selinux_config_state.changed
   block:
     - name: Create /etc/ansible directory
       ansible.builtin.file:

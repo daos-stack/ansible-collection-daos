@@ -1,0 +1,10 @@
+---
+# main tasks for selinux role
+
+- name: Import selinux tasks
+  ansible.builtin.import_tasks: selinux.yml
+  when:
+    - ansible_os_family | lower == "redhat"
+    - ansible_connection not in [ "container", "docker", "podman", "community.docker.docker" ]
+  tags:
+    - selinux

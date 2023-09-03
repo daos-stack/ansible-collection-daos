@@ -34,13 +34,14 @@
 
 - name: Include certificate deployment tasks
   ansible.builtin.import_tasks: certs.yml
-  when: daos_deploy_certs
+  when: daos_do_cert_gen
   tags:
     - daos
     - daos_certs
 
 - name: Include config tasks
   ansible.builtin.import_tasks: config.yml
+  when: daos_do_configuration
   tags:
     - daos
     - daos_config
@@ -52,6 +53,7 @@
       tags:
         - daos
         - daos_storage
+  when: daos_do_storage_format
   tags:
     - daos
     - daos_storage

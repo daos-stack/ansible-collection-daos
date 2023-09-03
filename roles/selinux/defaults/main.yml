@@ -1,0 +1,5 @@
+---
+# defaults file for selinux
+
+# selinux_state: <enforcing|permissive|disabled>
+selinux_state: disabled

@@ -3,9 +3,11 @@
 # playbook_fqn: daos_stack.daos.io500_install
 
 - name: IO500 installation
-  hosts: daos_clients:daos_admins
+  hosts: "{{ target_hosts | default('None') }}"
   gather_facts: true
   become: true
 
   roles:
+    - role: daos_stack.daos.epel
+    - role: daos_stack.daos.packages
     - role: daos_stack.daos.io500
