@@ -1,0 +1,8 @@
+---
+# defaults file for inteloneapi
+
+inteloneapi_base_url: https://yum.repos.intel.com/oneapi
+inteloneapi_gpgkey_url: https://yum.repos.intel.com/intel-gpg-keys/GPG-PUB-KEY-INTEL-SW-PRODUCTS.PUB
+inteloneapi_pkgs:
+  - intel-oneapi-mpi
+  - intel-oneapi-mpi-devel

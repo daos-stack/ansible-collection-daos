@@ -19,7 +19,7 @@
 
     - name: Determine if a reboot is required
       ansible.builtin.command: needs-restarting -r
-      check_mode: no
+      check_mode: false
       register: reboot_rhel_needsrestarting
       changed_when: reboot_rhel_needsrestarting.rc == 1
       failed_when: reboot_rhel_needsrestarting.rc not in [ 0, 1 ]
@@ -27,6 +27,6 @@
 
     - name: Set reboot flag if a reboot is required
       ansible.builtin.set_fact:
-        reboot_do_reboot: yes
-        cacheable: no
+        reboot_do_reboot: true
+        cacheable: false
       when: reboot_rhel_needsrestarting.changed

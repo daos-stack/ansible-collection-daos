@@ -1,0 +1,23 @@
+---
+# vars file for inteloneapi
+
+_inteloneapi_install_task_file:
+  amazon: install_amazon.yml
+  debian: install_debian.yml
+  redhat: install_redhat.yml
+  suse: install_suse.yml
+  ubuntu: install_ubuntu.yml
+
+inteloneapi_install_task_file: '{{  _inteloneapi_install_task_file[ansible_distribution|replace(" ","_")|lower ~"_"~ ansible_distribution_version] |
+  d(_inteloneapi_install_task_file[ansible_distribution|replace(" ","_")|lower ~"_"~ ansible_distribution_major_version] |
+  d(_inteloneapi_install_task_file[ansible_distribution|replace(" ","_")|lower] |
+  d(_inteloneapi_install_task_file[ansible_os_family|lower ~"_"~ ansible_distribution_major_version] |
+  d(_inteloneapi_install_task_file[ansible_os_family|lower] |
+  d(""))))) }}'
+
+_inteloneapi_repo_file:
+  default: /etc/yum.repos.d/oneAPI.repo
+  suse: /etc/zypp/repos.d/oneAPI.repo
+
+inteloneapi_repo_file: '{{ _inteloneapi_repo_file[ansible_os_family | lower] |
+  default(_inteloneapi_repo_file["default"]) }}'

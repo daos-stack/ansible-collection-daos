@@ -14,7 +14,7 @@
   block:
     - name: Determine if a reboot is required
       ansible.builtin.command: zypper ps -s
-      check_mode: no
+      check_mode: false
       register: reboot_suse_needsrestarting
       changed_when: reboot_suse_needsrestarting.rc == 1
       failed_when: reboot_suse_needsrestarting.rc not in [ 0, 1 ]
@@ -24,6 +24,6 @@
 
     - name: Set reboot flag if a reboot is required
       ansible.builtin.set_fact:
-        reboot_do_reboot: yes
-        cacheable: no
+        reboot_do_reboot: true
+        cacheable: false
       when: reboot_suse_needsrestarting.changed

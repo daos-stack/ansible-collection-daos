@@ -1,0 +1,13 @@
+---
+# main tasks file for inteloneapi
+
+- name: Include distro family specific install.yml
+  ansible.builtin.include_tasks: '{{ inteloneapi_install_task_file }}'
+  args:
+    apply:
+      tags:
+        - inteloneapi
+        - inteloneapi_install
+  tags:
+    - inteloneapi
+    - inteloneapi_install

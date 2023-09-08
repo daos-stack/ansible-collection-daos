@@ -18,11 +18,11 @@
     regexp: "^{{ item.key }}=.*"
     line: "{{ item.key }}={{ item.value }}"
   loop:
-     - { key: "User", value: "{{ ansible_local.daos.iommu_enabled | ternary(daos_server_user, 'root') }}" }
-     - { key: "Group", value: "{{ ansible_local.daos.iommu_enabled | ternary(daos_server_user, 'root') }}" }
+    - { key: "User", value: "{{ ansible_local.daos.iommu_enabled | ternary(daos_server_user, 'root') }}" }
+    - { key: "Group", value: "{{ ansible_local.daos.iommu_enabled | ternary(daos_server_user, 'root') }}" }
   register: daos_server_service_file
 
 - name: Re-read systemd service files
   ansible.builtin.systemd:
-    daemon_reload: yes
+    daemon_reload: true
   when: daos_server_service_file.changed

@@ -1,4 +1,6 @@
-ansible
-ansible-lint
-yamllint
-molecule[podman]
+ansible-compat >= 4.1.10
+ansible-lint >= 6.*
+yamllint >= 1.32.0
+molecule == 5.*
+molecule-plugins[docker] == 23.*
+pre-commit

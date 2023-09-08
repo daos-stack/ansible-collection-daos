@@ -107,7 +107,9 @@ _packages_common:
   redhat:
     - bind-utils
     - bzip2
+    - clustershell
     - curl
+    - dnf-plugins-core
     - git
     - gzip
     - htop
@@ -119,6 +121,7 @@ _packages_common:
     - net-tools
     - nmap
     - nmap-ncat
+    - pdsh
     - psmisc
     - rsync
     - screen
@@ -128,6 +131,7 @@ _packages_common:
     - traceroute
     - tree
     - unzip
+    - which
     - yum-utils
   ubuntu:
     - git

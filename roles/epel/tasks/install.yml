@@ -40,7 +40,7 @@
 
 - name: Update package cache # noqa no-handler
   ansible.builtin.package:
-    update_cache: yes
+    update_cache: true
   when: epel_repo.changed or
     epel_additional_repos.changed or
     epel_next_repo.changed

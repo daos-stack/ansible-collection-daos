@@ -1,33 +1,14 @@
 ---
 dependency:
   name: galaxy
-  enabled: False
   options:
-    role-file: requirements.yml
-    requirements-file: requirements.yml
+    role-file: "${MOLECULE_SCENARIO_DIRECTORY}/requirements.yml"
+    requirements-file: "${MOLECULE_SCENARIO_DIRECTORY}/requirements.yml"
 
-lint: |
-  set -e
-  yamllint .
-  # ansible-lint
-  # flake8
 driver:
-  name: podman
+  name: docker
 
 platforms:
-  # - name: "epel-${image:-almalinux8-systemd}-${tag:-latest}${TOX_ENVNAME}"
-  #   image: "${namespace:-quay.io/mark_olson/}/${image:-almalinux8-systemd}:${tag:-latest}"
-  #   command: /sbin/init
-  #   tmpfs:
-  #     - /run
-  #     - /tmp
-  #   volumes:
-  #     - /sys/fs/cgroup:/sys/fs/cgroup:ro
-  #   privileged: True
-  #   pre_build_image: True
-  #   capabilities:
-  #     - SYS_ADMIN
-
   - name: epel-almalinux8
     image: quay.io/mark_olson/almalinux8-systemd:latest
     command: /sbin/init
@@ -36,37 +17,39 @@ platforms:
       - /tmp
     volumes:
       - /sys/fs/cgroup:/sys/fs/cgroup:ro
-    privileged: True
-    pre_build_image: True
+    privileged: true
+    pre_build_image: true
+    # cgroupns_mode: host
     capabilities:
       - SYS_ADMIN
+    override_command: false
   - name: epel-almalinux9
     image: quay.io/mark_olson/almalinux9-systemd:latest
+    command: /sbin/init
     tmpfs:
       - /run
       - /tmp
     volumes:
       - /sys/fs/cgroup:/sys/fs/cgroup:ro
-    privileged: True
-    pre_build_image: True
-  - name: epel-amazonlinux2
-    image: quay.io/mark_olson/amazonlinux2-systemd:latest
+    privileged: true
+    pre_build_image: true
+    # cgroupns_mode: host
+    capabilities:
+      - SYS_ADMIN
+    override_command: false
+  - name: epel-fedora38
+    image: quay.io/mark_olson/fedora38-systemd:latest
     tmpfs:
       - /run
       - /tmp
     volumes:
       - /sys/fs/cgroup:/sys/fs/cgroup:ro
-    privileged: True
-    pre_build_image: True
-  - name: epel-centos7
-    image: quay.io/mark_olson/centos7-systemd:latest
-    tmpfs:
-      - /run
-      - /tmp
-    volumes:
-      - /sys/fs/cgroup:/sys/fs/cgroup:ro
-    privileged: True
-    pre_build_image: True
+    privileged: true
+    pre_build_image: true
+    # cgroupns_mode: host
+    capabilities:
+      - SYS_ADMIN
+    override_command: false
   - name: epel-debian11
     image: quay.io/mark_olson/debian11-systemd:latest
     tmpfs:
@@ -74,26 +57,29 @@ platforms:
       - /tmp
     volumes:
       - /sys/fs/cgroup:/sys/fs/cgroup:ro
-    privileged: True
-    pre_build_image: True
-  - name: epel-fedora36
-    image: quay.io/mark_olson/fedora36-systemd:latest
+    privileged: true
+    pre_build_image: true
+    # cgroupns_mode: host
+    capabilities:
+      - SYS_ADMIN
+    override_command: false
+    ansible_connection_options:
+      ansible_python_interpreter: "/usr/bin/python3"
+  - name: epel-debian12
+    image: quay.io/mark_olson/debian12-systemd:latest
     tmpfs:
       - /run
       - /tmp
     volumes:
       - /sys/fs/cgroup:/sys/fs/cgroup:ro
-    privileged: True
-    pre_build_image: True
-  - name: epel-opensuse-leap15.3
-    image: quay.io/mark_olson/opensuse-leap15.3-systemd:latest
-    tmpfs:
-      - /run
-      - /tmp
-    volumes:
-      - /sys/fs/cgroup:/sys/fs/cgroup:ro
-    privileged: True
-    pre_build_image: True
+    privileged: true
+    pre_build_image: true
+    # cgroupns_mode: host
+    capabilities:
+      - SYS_ADMIN
+    override_command: false
+    ansible_connection_options:
+      ansible_python_interpreter: "/usr/bin/python3"
   - name: epel-opensuse-leap15.4
     image: quay.io/mark_olson/opensuse-leap15.4-systemd:latest
     tmpfs:
@@ -101,8 +87,55 @@ platforms:
       - /tmp
     volumes:
       - /sys/fs/cgroup:/sys/fs/cgroup:ro
-    privileged: True
-    pre_build_image: True
+    privileged: true
+    pre_build_image: true
+    # cgroupns_mode: host
+    capabilities:
+      - SYS_ADMIN
+    override_command: false
+    ansible_connection_options:
+      ansible_python_interpreter: "/usr/bin/python3.11"
+  - name: epel-opensuse-leap15.5
+    image: quay.io/mark_olson/opensuse-leap15.5-systemd:latest
+    tmpfs:
+      - /run
+      - /tmp
+    volumes:
+      - /sys/fs/cgroup:/sys/fs/cgroup:ro
+    privileged: true
+    pre_build_image: true
+    # cgroupns_mode: host
+    capabilities:
+      - SYS_ADMIN
+    override_command: false
+    ansible_connection_options:
+      ansible_python_interpreter: "/usr/bin/python3.11"
+  - name: epel-oraclelinux8
+    image: quay.io/mark_olson/oraclelinux8-systemd:latest
+    tmpfs:
+      - /run
+      - /tmp
+    volumes:
+      - /sys/fs/cgroup:/sys/fs/cgroup:ro
+    privileged: true
+    pre_build_image: true
+    # cgroupns_mode: host
+    capabilities:
+      - SYS_ADMIN
+    override_command: false
+  - name: epel-oraclelinux9
+    image: quay.io/mark_olson/oraclelinux9-systemd:latest
+    tmpfs:
+      - /run
+      - /tmp
+    volumes:
+      - /sys/fs/cgroup:/sys/fs/cgroup:ro
+    privileged: true
+    pre_build_image: true
+    # cgroupns_mode: host
+    capabilities:
+      - SYS_ADMIN
+    override_command: false
   - name: epel-rockylinux8
     image: quay.io/mark_olson/rockylinux8-systemd:latest
     tmpfs:
@@ -110,8 +143,12 @@ platforms:
       - /tmp
     volumes:
       - /sys/fs/cgroup:/sys/fs/cgroup:ro
-    privileged: True
-    pre_build_image: True
+    privileged: true
+    pre_build_image: true
+    # cgroupns_mode: host
+    capabilities:
+      - SYS_ADMIN
+    override_command: false
   - name: epel-rockylinux9
     image: quay.io/mark_olson/rockylinux9-systemd:latest
     tmpfs:
@@ -119,40 +156,52 @@ platforms:
       - /tmp
     volumes:
       - /sys/fs/cgroup:/sys/fs/cgroup:ro
-    privileged: True
-    pre_build_image: True
-  - name: epel-ubuntu2204
+    privileged: true
+    pre_build_image: true
+    # cgroupns_mode: host
+    capabilities:
+      - SYS_ADMIN
+    override_command: false
+  - name: epel-ubuntu22.04
     image: quay.io/mark_olson/ubuntu22.04-systemd:latest
     tmpfs:
       - /run
       - /tmp
     volumes:
       - /sys/fs/cgroup:/sys/fs/cgroup:ro
-    privileged: True
-    pre_build_image: True
+    privileged: true
+    pre_build_image: true
+    # cgroupns_mode: host
+    capabilities:
+      - SYS_ADMIN
+    override_command: false
 provisioner:
   name: ansible
+  lint: |
+      yamllint .
+      ansible-lint
 verifier:
   name: ansible
 scenario:
   create_sequence:
+    - dependency
     - create
   check_sequence:
+    - dependency
     - create
     - converge
     - check
     - destroy
   converge_sequence:
+    - dependency
     - create
     - converge
   destroy_sequence:
+    - dependency
     - destroy
   test_sequence:
-    - lint
+    - dependency
     - destroy
     - syntax
     - create
     - converge
-    #- idempotence
-    #- verify
-    #- destroy

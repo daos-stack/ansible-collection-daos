@@ -4,7 +4,24 @@
 - name: Verify
   hosts: all
   gather_facts: false
+  become: true
+
   tasks:
-  - name: Example assertion
-    ansible.builtin.assert:
-      that: true
+
+    - name: Grep for epel in repolist
+      # noqa no-changed-when
+      ansible.builtin.shell: |
+        set -o pipefail
+        sudo dnf repolist --enabled | grep epel | awk '{print $1}'
+      register: epel_repo_grep
+      when: ansible_os_family | lower == "redhat"
+
+    - name: Assert that epel repo was installed
+      ansible.builtin.assert:
+        that: epel_repo_grep.stdout == "epel"
+      when: ansible_os_family | lower == "redhat"
+
+    - name: Assert true on debian
+      ansible.builtin.assert:
+        that: true
+      when: ansible_os_family | lower == "debian"

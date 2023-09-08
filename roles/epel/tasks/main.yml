@@ -2,11 +2,9 @@
 # tasks file for epel
 
 - name: Include install.yml for epel
-  ansible.builtin.include_tasks: install.yml
-  when: ansible_os_family | lower == "redhat"
-  args:
-    apply:
-      tags:
-        - epel
+  ansible.builtin.import_tasks: install.yml
+  when:
+    - ansible_os_family | lower == "redhat"
+    - ansible_distribution | lower != "fedora"
   tags:
     - epel

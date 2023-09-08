@@ -41,6 +41,7 @@
   register: tune_iommu_grub
 
 - name: Run grub2-mkconfig
+  # noqa no-changed-when
   ansible.builtin.command: "grub2-mkconfig --output={{ tune_grub_cfg }}"
   when: tune_iommu_grub.changed
   register: tune_grub

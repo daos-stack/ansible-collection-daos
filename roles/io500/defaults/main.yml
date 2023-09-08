@@ -3,24 +3,17 @@
 
 io500_tools_dir: /usr/local/tools
 
-# Intel oneAPI
-io500_oneapi_base_url: https://yum.repos.intel.com/oneapi
-io500_oneapi_gpgkey_url: https://yum.repos.intel.com/intel-gpg-keys/GPG-PUB-KEY-INTEL-SW-PRODUCTS.PUB
-io500_oneapi_pkgs:
-  - intel-oneapi-mpi
-  - intel-oneapi-mpi-devel
-
 # cmake
 io500_cmake_version: 3.24.2
 io500_cmake_installer_script: "cmake-{{ io500_cmake_version }}-linux-x86_64.sh"
 io500_cmake_installer_url: "https://github.com/Kitware/CMake/releases/download/v{{ io500_cmake_version }}/{{ io500_cmake_installer_script }}"
 
-# mpifileutils
-io500_mfu_root_dir: /usr/local/mpifileutils
-io500_mfu_deps_dir: "{{ io500_mfu_root_dir }}/deps"
-io500_mfu_src_dir: "{{ io500_mfu_root_dir }}/src"
-io500_mfu_build_dir: "{{ io500_mfu_root_dir }}/build"
-io500_mfu_install_dir: "{{ io500_mfu_root_dir }}/install"
+# # mpifileutils
+# io500_mfu_root_dir: /usr/local/mpifileutils
+# io500_mfu_deps_dir: "{{ io500_mfu_root_dir }}/deps"
+# io500_mfu_src_dir: "{{ io500_mfu_root_dir }}/src"
+# io500_mfu_build_dir: "{{ io500_mfu_root_dir }}/build"
+# io500_mfu_install_dir: "{{ io500_mfu_root_dir }}/install"
 
 # libcircle
 io500_libcircle_src_url: https://github.com/hpc/libcircle/releases/download/v0.3/libcircle-0.3.0.tar.gz
@@ -34,6 +27,6 @@ io500_lwgrp_dir: "{{ io500_mfu_deps_dir }}/{{ io500_lwgrp_src_url | basename | r
 io500_dtcmp_src_url: https://github.com/llnl/dtcmp/releases/download/v1.1.0/dtcmp-1.1.0.tar.gz
 io500_dtcmp_dir: "{{ io500_mfu_deps_dir }}/{{ io500_dtcmp_src_url | basename | regex_replace('.tar.gz', '') }}"
 
-# mpifileutils
-io500_mpifileutils_repo_url: https://github.com/hpc/mpifileutils.git
-io500_mpifileutils_src_dir: "{{ io500_mfu_src_dir }}/mpifileutils"
+# # mpifileutils
+# io500_mpifileutils_repo_url: https://github.com/hpc/mpifileutils.git
+# io500_mpifileutils_src_dir: "{{ io500_mfu_src_dir }}/mpifileutils"

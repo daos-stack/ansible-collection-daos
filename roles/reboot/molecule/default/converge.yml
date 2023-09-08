@@ -2,8 +2,8 @@
 
 - name: Converge
   hosts: all
-  become: yes
-  gather_facts: yes
+  become: true
+  gather_facts: true
 
   tasks:
     - name: "Include daos role"

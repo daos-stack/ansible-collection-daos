@@ -10,3 +10,8 @@
   ansible.builtin.package:
     name: "{{ io500_dep_pkgs }}"
     state: present
+
+- name: Install daos-devel
+  ansible.builtin.package:
+    name: "daos-devel"
+    state: present

@@ -34,7 +34,8 @@
           ansible.builtin.debug:
             msg: "One or more hosts are not available. Cannot continue."
 
-        - meta: end_play
+        - name: End play
+          ansible.builtin.meta: end_play
 
 
 - name: DAOS cluster prep

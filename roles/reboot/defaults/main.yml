@@ -2,11 +2,11 @@
 # Default variables for the reboot role
 
 # This will get set to yes based on a set of conditions
-reboot_do_reboot: no
+reboot_do_reboot: false
 
 # Look for a file named /etc/ansible/reboot and always set
 # reboot_do_reboot = yes if the file exists
-reboot_check_reboot_file: yes
+reboot_check_reboot_file: true
 
 # Set to yes if you want to disable reboot
-reboot_disable: no
+reboot_disable: false

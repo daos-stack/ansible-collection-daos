@@ -33,8 +33,9 @@
   register: daos_admin_bashrc
 
 - name: Create .bashrc for daos admin user
-  # noqa: command-instead-of-module
+  # noqa no-changed-when
   ansible.builtin.shell: |
+    set -eo pipefail
     rsync -avh /etc/skel/ /home/{{ daos_admin_user }}/
     chown -R {{ daos_admin_user }}:{{ daos_admin_user }} /home/{{ daos_admin_user }}
   when: (daos_admin_bashrc.stat is not defined) or

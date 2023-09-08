@@ -4,7 +4,7 @@ This Ansible role will install and configure DAOS on a host.
 
 > A host can be a bare metal machine, VM, or container. The term *host* will be used in the documentation below to refer to any target where the `daos_stack.daos.daos` *Ansible role* will run.
 
-In this documentation the term "role" is overloaded.
+In this README.md file the term "role" is overloaded.
 
 - Used to refer to the `daos_stack.daos.daos` *Ansible role*
 - The role that a host is assigned within a [DAOS system](https://docs.daos.io/latest/overview/architecture/#daos-system). A host may take on the role of a DAOS server, a DAOS client, a DAOS admin or any combination of the three.

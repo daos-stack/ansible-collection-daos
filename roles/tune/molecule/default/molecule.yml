@@ -1,7 +1,7 @@
 ---
 dependency:
   name: galaxy
-  enabled: False
+  enabled: false
   options:
     role-file: requirements.yml
     requirements-file: requirements.yml
@@ -19,8 +19,8 @@ platforms:
   #   command: /sbin/init
   #   volumes:
   #     - /sys/fs/cgroup:/sys/fs/cgroup:ro
-  #   privileged: True
-  #   pre_build_image: True
+  #   privileged: true
+  #   pre_build_image: true
 
   - name: tune-almalinux8
     image: quay.io/mark_olson/almalinux8-systemd:latest
@@ -30,8 +30,8 @@ platforms:
       - /tmp
     volumes:
       - /sys/fs/cgroup:/sys/fs/cgroup:ro
-    privileged: True
-    pre_build_image: True
+    privileged: true
+    pre_build_image: true
     # capabilities:
     #   - ALL
   - name: tune-almalinux9
@@ -42,8 +42,8 @@ platforms:
       - /tmp
     volumes:
       - /sys/fs/cgroup:/sys/fs/cgroup:ro
-    privileged: True
-    pre_build_image: True
+    privileged: true
+    pre_build_image: true
   - name: tune-amazonlinux2
     image: quay.io/mark_olson/amazonlinux2-systemd:latest
     command: /sbin/init
@@ -52,8 +52,8 @@ platforms:
       - /tmp
     volumes:
       - /sys/fs/cgroup:/sys/fs/cgroup:ro
-    privileged: True
-    pre_build_image: True
+    privileged: true
+    pre_build_image: true
   - name: tune-centos7
     image: quay.io/mark_olson/centos7-systemd:latest
     command: /sbin/init
@@ -67,8 +67,8 @@ platforms:
       - ALL
     security_opt:
       - seccomp:unconfined
-    privileged: True
-    pre_build_image: True
+    privileged: true
+    pre_build_image: true
   - name: tune-debian11
     image: quay.io/mark_olson/debian11-systemd:latest
     command: /sbin/init
@@ -77,8 +77,8 @@ platforms:
       - /tmp
     volumes:
       - /sys/fs/cgroup:/sys/fs/cgroup:ro
-    privileged: True
-    pre_build_image: True
+    privileged: true
+    pre_build_image: true
   - name: tune-fedora36
     image: quay.io/mark_olson/fedora36-systemd:latest
     command: /sbin/init
@@ -87,8 +87,8 @@ platforms:
       - /tmp
     volumes:
       - /sys/fs/cgroup:/sys/fs/cgroup:ro
-    privileged: True
-    pre_build_image: True
+    privileged: true
+    pre_build_image: true
   - name: tune-opensuse-leap15.3
     image: quay.io/mark_olson/opensuse-leap15.3-systemd:latest
     command: /sbin/init
@@ -97,8 +97,8 @@ platforms:
       - /tmp
     volumes:
       - /sys/fs/cgroup:/sys/fs/cgroup:ro
-    privileged: True
-    pre_build_image: True
+    privileged: true
+    pre_build_image: true
   - name: tune-opensuse-leap15.4
     image: quay.io/mark_olson/opensuse-leap15.4-systemd:latest
     command: /sbin/init
@@ -107,8 +107,8 @@ platforms:
       - /tmp
     volumes:
       - /sys/fs/cgroup:/sys/fs/cgroup:ro
-    privileged: True
-    pre_build_image: True
+    privileged: true
+    pre_build_image: true
   - name: tune-rockylinux8
     image: quay.io/mark_olson/rockylinux8-systemd:latest
     command: /sbin/init
@@ -117,8 +117,8 @@ platforms:
       - /tmp
     volumes:
       - /sys/fs/cgroup:/sys/fs/cgroup:ro
-    privileged: True
-    pre_build_image: True
+    privileged: true
+    pre_build_image: true
   - name: tune-rockylinux9
     image: quay.io/mark_olson/rockylinux9-systemd:latest
     command: /sbin/init
@@ -127,8 +127,8 @@ platforms:
       - /tmp
     volumes:
       - /sys/fs/cgroup:/sys/fs/cgroup:ro
-    privileged: True
-    pre_build_image: True
+    privileged: true
+    pre_build_image: true
   # - name: tune-ubuntu2204
   #   image: quay.io/mark_olson/ubuntu22.04-systemd:latest
   #   command: /lib/systemd/systemd
@@ -138,8 +138,8 @@ platforms:
   #     - /tmp
   #   volumes:
   #     - /sys/fs/cgroup:/sys/fs/cgroup:ro
-  #   privileged: True
-  #   pre_build_image: True
+  #   privileged: true
+  #   pre_build_image: true
 provisioner:
   name: ansible
 verifier:
@@ -163,6 +163,6 @@ scenario:
     # - syntax
     - create
     - converge
-    #- idempotence
-    #- verify
+    # - idempotence
+    # - verify
     - destroy

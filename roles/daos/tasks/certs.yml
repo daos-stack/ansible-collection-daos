@@ -44,28 +44,21 @@
     verify_host: false
     mode: push
   loop:
-    - {
-        src: "{{ daos_certs_gen_ca_dir }}/certs/daosCA.crt",
-        dest: "/etc/daos/certs/daosCA.crt"
-      }
-    - {
-        src: "{{ daos_certs_gen_ca_dir }}/certs/server.crt",
-        dest: "/etc/daos/certs/server.crt"
-      }
-    - {
-        src: "{{ daos_certs_gen_ca_dir }}/certs/server.key",
-        dest: "/etc/daos/certs/server.key"
-      }
-    - {
-        src: "{{ daos_certs_gen_ca_dir }}/certs/agent.crt",
-        dest: "/etc/daos/certs/clients/agent.crt"
-      }
+    - { src: "{{ daos_certs_gen_ca_dir }}/certs/daosCA.crt",
+        dest: "/etc/daos/certs/daosCA.crt" }
+    - { src: "{{ daos_certs_gen_ca_dir }}/certs/server.crt",
+        dest: "/etc/daos/certs/server.crt" }
+    - { src: "{{ daos_certs_gen_ca_dir }}/certs/server.key",
+        dest: "/etc/daos/certs/server.key" }
+    - { src: "{{ daos_certs_gen_ca_dir }}/certs/agent.crt",
+        dest: "/etc/daos/certs/clients/agent.crt" }
   loop_control:
     label: "{{ item.dest }}"
   delegate_to: "{{ groups['daos_admins'][0] }}"
   when: daos_role_server in daos_roles
 
 - name: Copy client certs
+  # noqa yaml[indentation]
   ansible.posix.synchronize:
     src: "{{ item.src }}"
     dest: "{{ item.dest }}"
@@ -77,18 +70,12 @@
     verify_host: false
     mode: push
   loop:
-    - {
-        src: "{{ daos_certs_gen_ca_dir }}/certs/daosCA.crt",
-        dest: "/etc/daos/certs/daosCA.crt"
-      }
-    - {
-        src: "{{ daos_certs_gen_ca_dir }}/certs/agent.crt",
-        dest: "/etc/daos/certs/agent.crt"
-      }
-    - {
-        src: "{{ daos_certs_gen_ca_dir }}/certs/agent.key",
-        dest: "/etc/daos/certs/agent.key"
-      }
+    - { src: "{{ daos_certs_gen_ca_dir }}/certs/daosCA.crt",
+        dest: "/etc/daos/certs/daosCA.crt" }
+    - { src: "{{ daos_certs_gen_ca_dir }}/certs/agent.crt",
+        dest: "/etc/daos/certs/agent.crt" }
+    - { src: "{{ daos_certs_gen_ca_dir }}/certs/agent.key",
+        dest: "/etc/daos/certs/agent.key" }
   loop_control:
     label: "{{ item.dest }}"
   delegate_to: "{{ groups['daos_admins'][0] }}"
@@ -106,26 +93,16 @@
     verify_host: false
     mode: push
   loop:
-    - {
-        src: "{{ daos_certs_gen_ca_dir }}/certs/daosCA.crt",
-        dest: "{{ daos_admin_certs_dir }}/daosCA.crt"
-      }
-    - {
-        src: "{{ daos_certs_gen_ca_dir }}/certs/admin.crt",
-        dest: "{{ daos_admin_certs_dir }}/admin.crt"
-      }
-    - {
-        src: "{{ daos_certs_gen_ca_dir }}/certs/admin.key",
-        dest: "{{ daos_admin_certs_dir }}/admin.key"
-      }
-    - {
-        src: "{{ daos_certs_gen_ca_dir }}/certs/admin.crt",
-        dest: "{{ daos_certs_dir }}/admin.crt"
-      }
-    - {
-        src: "{{ daos_certs_gen_ca_dir }}/certs/admin.key",
-        dest: "{{ daos_certs_dir }}/admin.key"
-      }
+    - { src: "{{ daos_certs_gen_ca_dir }}/certs/daosCA.crt",
+        dest: "{{ daos_admin_certs_dir }}/daosCA.crt" }
+    - { src: "{{ daos_certs_gen_ca_dir }}/certs/admin.crt",
+        dest: "{{ daos_admin_certs_dir }}/admin.crt" }
+    - { src: "{{ daos_certs_gen_ca_dir }}/certs/admin.key",
+        dest: "{{ daos_admin_certs_dir }}/admin.key" }
+    - { src: "{{ daos_certs_gen_ca_dir }}/certs/admin.crt",
+        dest: "{{ daos_certs_dir }}/admin.crt" }
+    - { src: "{{ daos_certs_gen_ca_dir }}/certs/admin.key",
+        dest: "{{ daos_certs_dir }}/admin.key" }
   loop_control:
     label: "{{ item.dest }}"
   delegate_to: "{{ groups['daos_admins'][0] }}"
@@ -160,27 +137,24 @@
 
 - name: Set cert permissions (admin certs)
   ansible.builtin.file:
-    path: "{{ daos_admin_certs_dir }}"
+    path: "{{ cert_perm.path }}"
     state: directory
-    owner: "{{ daos_admin_user }}"
-    group: "{{ daos_admin_user }}"
+    owner: "{{ cert_perm.owner }}"
+    group: "{{ cert_perm.group }}"
+    mode: "'{{ cert_perm.mode }}'"
   loop:
-    - {
-        path: "{{ daos_certs_dir }}/daosCA.crt",
+    - { path: "{{ daos_certs_dir }}/daosCA.crt",
         owner: root,
         group: root,
-        mode: '0644'
-      }
-    - {
-        path: "{{ daos_certs_dir }}/admin.crt",
+        mode: '0644'}
+    - { path: "{{ daos_certs_dir }}/admin.crt",
         owner: "{{ daos_admin_user }}",
         group: "{{ daos_admin_user }}",
-        mode: '0644'
-      }
-    - {
-        path: "{{ daos_certs_dir }}/admin.key",
+        mode: '0644'}
+    - { path: "{{ daos_certs_dir }}/admin.key",
         owner: "{{ daos_admin_user }}",
         group: "{{ daos_admin_user }}",
-        mode: '0600'
-      }
+        mode: '0600'}
+  loop_control:
+    loop_var: cert_perm
   when: daos_role_admin in daos_roles

@@ -42,7 +42,7 @@
   ansible.builtin.unarchive:
     src: "{{ item }}"
     dest: "{{ io500_mfu_deps_dir }}"
-    remote_src: yes
+    remote_src: true
   loop:
     - "{{ io500_libcircle_src_url }}"
     - "{{ io500_lwgrp_src_url }}"
@@ -56,7 +56,7 @@
 
 - name: Apply libcircle patch
   # noqa: command-instead-of-module
-  ansible.builtin.command:  patch -p1 < libcircle_opt.patch
+  ansible.builtin.shell: patch -p1 < libcircle_opt.patch
   args:
     chdir: "{{ io500_libcircle_dir }}"
   changed_when: false
@@ -102,7 +102,7 @@
   ansible.builtin.git:
     repo: "{{ io500_mpifileutils_repo_url }}"
     dest: "{{ io500_mpifileutils_src_dir }}"
-    single_branch: yes
+    single_branch: true
     version: main
   changed_when: false
 
@@ -126,5 +126,5 @@
   args:
     chdir: "{{ io500_mfu_build_dir }}"
     executable: /bin/bash
-    #creates: "{{ io500_mfu_install_dir }}/lib/libdtcmp.so"
+    # creates: "{{ io500_mfu_install_dir }}/lib/libdtcmp.so"
   changed_when: false # FIX

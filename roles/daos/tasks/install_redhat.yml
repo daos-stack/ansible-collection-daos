@@ -32,5 +32,5 @@
 - name: Enable daos_server service
   ansible.builtin.service:
     name: daos_server
-    enabled: yes
+    enabled: true
   when: '"server" in daos_roles'

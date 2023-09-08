@@ -1,5 +1,5 @@
 ---
-- name: test
+- name: Test
   hosts: all
   gather_facts: true
   become: true
@@ -11,7 +11,9 @@
 
   roles:
     - role: daos_stack.daos.selinux
+    - role: daos_stack.daos.epel
+    - role: daos_stack.daos.packages
+    - role: daos_stack.daos.tune
     - role: daos_stack.daos.daos
-  #   - role: daos_stack.daos.epel
-  #   - role: daos_stack.daos.packages
-  #   - role: daos_stack.daos.io500
+    - role: daos_stack.daos.inteloneapi
+    - role: daos_stack.daos.io500

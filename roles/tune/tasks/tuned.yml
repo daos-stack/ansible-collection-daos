@@ -19,7 +19,7 @@
   ansible.builtin.service:
     name: tuned
     state: started
-    enabled: yes
+    enabled: true
 
 - name: Install tuned packages
   ansible.builtin.package:
@@ -90,7 +90,7 @@
 
 - name: Set tuned profile
   ansible.builtin.command: "tuned-adm profile {{ tune_tuned_profile }}"
-  when: not (tune_tuned_use_recommended_profile | bool)
+  when: falset (tune_tuned_use_recommended_profile | bool)
   changed_when: tune_tuned_active_profile != tune_tuned_profile or tune_tuned_conf.changed
 
 - name: Create file to signal reboot is required

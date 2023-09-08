@@ -8,6 +8,7 @@
   block:
     - name: "Add old 15.3 repo - workaround for DAOS-11637"
       ansible.builtin.shell: |
+        set -o pipefail
         if ! zypper lr -E -a | grep -q repo-oss-15.3; then
           zypper addrepo \
             --name "Main Repository - 15.3" \
@@ -40,6 +41,7 @@
   register: daos_repo_file
 
 - name: Refresh DAOS packages repo
+  # noqa no-changed-when
   ansible.builtin.command: zypper --gpg-auto-import-keys refresh daos
   when: daos_repo_file.changed
 

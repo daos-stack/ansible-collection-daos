@@ -4,8 +4,8 @@
 profile: null
 
 exclude_paths:
- - molecule/
- - tasks/main.yml
+  - molecule/
+  - tasks/main.yml
 
 skip_list:
   - no-handler

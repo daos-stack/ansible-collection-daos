@@ -17,7 +17,7 @@ To prevent this role from rebooting the host regardless of the
 existence of a `/etc/ansible/reboot` file or if the host needs a reboot, set
 
 ```
-reboot_disable: yes
+reboot_disable: true
 ```
 
 ## Requirements

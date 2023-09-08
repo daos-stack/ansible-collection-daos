@@ -45,11 +45,12 @@
   when: inventory_hostname == groups['daos_admins'][0]
 
 - name: Show output from dmg system query command
-  debug:
+  ansible.builtin.debug:
     var: daos_format_needed
   when: inventory_hostname == groups['daos_admins'][0]
 
 - name: Format storage
+  # noqa no-changed-when
   ansible.builtin.command: "dmg storage format -l '{{ daos_server_ips }}'"
   when: (inventory_hostname == groups['daos_admins'][0]) and
         (daos_do_storage_format | bool) and

@@ -44,6 +44,7 @@
   ansible.builtin.shell:
     executable: /bin/bash
     cmd: |
+      set -eo pipefail
       /usr/sbin/ethtool -l "{{ ansible_default_ipv4.interface }}" | \
       grep -A4 Current | grep Combined | awk '{print $2}'
   register: tune_nic_queues_current
@@ -59,4 +60,4 @@
   register: tune_nic_queues
   failed_when: tune_nic_queues.rc != 0 and tune_nic_queues.stderr is not search("unmodified")
   changed_when: tune_nic_queues_current.stdout | int != tune_nic_queues_combined | int
-  when: not (tune_nic_queues_auto_enabled | default(false) | bool)
+  when: falset (tune_nic_queues_auto_enabled | default(false) | bool)

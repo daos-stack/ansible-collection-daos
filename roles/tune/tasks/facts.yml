@@ -23,4 +23,4 @@
 - name: Reload facts
   ansible.builtin.setup:
     filter: ansible_local
-  when: tune_fact_script.changed  # noqa: no-handler
+  when: tune_fact_script.changed  # noqa: false-handler

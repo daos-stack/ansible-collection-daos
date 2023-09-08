@@ -21,8 +21,8 @@
 
     - name: Set reboot flag if /etc/ansible/reboot file exists
       ansible.builtin.set_fact:
-        reboot_do_reboot: yes
-        cacheable: no
+        reboot_do_reboot: true
+        cacheable: false
       when:
         - reboot_reboot_file.stat.exists is defined
         - reboot_reboot_file.stat.exists | bool
@@ -45,7 +45,7 @@
         - 'reboot_eval_{{ ansible_distribution | lower }}.yml'
         - 'reboot_eval_{{ ansible_os_family | lower }}.yml'
         - 'reboot_eval_redhat.yml'
-  when: not reboot_do_reboot | bool
+  when: falset reboot_do_reboot | bool
   tags:
     - reboot
 
