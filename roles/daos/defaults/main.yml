@@ -5,8 +5,8 @@
 daos_version: 2.4.0
 
 # URLs for repos
-daos_repo_base_url: https://packages.daos.io/
-daos_repo_gpg_key_url: "{{ daos_repo_base_url }}/RPM-GPG-KEY-2023"
+daos_repo_base_url: https://packages.daos.io
+daos_repo_gpg_key_url: "{{ daos_repo_base_url }}/v{{ daos_version }}/RPM-GPG-KEY-2023"
 daos_repo_enable_source: false
 daos_repo_enable_debug: false
 

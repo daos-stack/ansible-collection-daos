@@ -28,20 +28,25 @@
       tags:
         - daos
         - daos_install
+        - ansible_os_family | lower == "redhat" or ansible_os_family | lower == "opensuse"
   tags:
     - daos
     - daos_install
 
 - name: Include certificate deployment tasks
   ansible.builtin.import_tasks: certs.yml
-  when: daos_do_cert_gen
+  when:
+    - daos_do_cert_gen
+    - ansible_os_family | lower == "redhat" or ansible_os_family | lower == "opensuse"
   tags:
     - daos
     - daos_certs
 
 - name: Include config tasks
   ansible.builtin.import_tasks: config.yml
-  when: daos_do_configuration
+  when:
+    - daos_do_configuration
+    - ansible_os_family | lower == "redhat" or ansible_os_family | lower == "opensuse"
   tags:
     - daos
     - daos_config
@@ -53,7 +58,9 @@
       tags:
         - daos
         - daos_storage
-  when: daos_do_storage_format
+  when:
+    - daos_do_storage_format
+    - ansible_os_family | lower == "redhat" or ansible_os_family | lower == "opensuse"
   tags:
     - daos
     - daos_storage

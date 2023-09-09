@@ -105,15 +105,15 @@ daos_repo_files_dir: '{{ _daos_repo_files_dir[ansible_pkg_mgr] }}'
 _daos_repo_urls:
   centos_7:
     packages: '{{ daos_repo_base_url }}/v{{ daos_version }}/CentOS7/packages/{{ ansible_architecture }}'
-    ansible.builtin.debug: '{{ daos_repo_base_url }}/v{{ daos_version }}/CentOS7/debug/{{ ansible_architecture }}'
+    debug: '{{ daos_repo_base_url }}/v{{ daos_version }}/CentOS7/debug/{{ ansible_architecture }}'
     source: '{{ daos_repo_base_url }}/v{{ daos_version }}/CentOS7/source'
   redhat_8:
     packages: '{{ daos_repo_base_url }}/v{{ daos_version }}/EL8/packages/{{ ansible_architecture }}'
-    ansible.builtin.debug: '{{ daos_repo_base_url }}/v{{ daos_version }}/EL8/debug/{{ ansible_architecture }}'
+    debug: '{{ daos_repo_base_url }}/v{{ daos_version }}/EL8/debug/{{ ansible_architecture }}'
     source: '{{ daos_repo_base_url }}/v{{ daos_version }}/EL8/source'
   opensuse_leap_15:
     packages: '{{ daos_repo_base_url }}/v{{ daos_version }}/Leap15/packages/{{ ansible_architecture }}'
-    ansible.builtin.debug: '{{ daos_repo_base_url }}/v{{ daos_version }}/Leap15/debug/{{ ansible_architecture }}'
+    debug: '{{ daos_repo_base_url }}/v{{ daos_version }}/Leap15/debug/{{ ansible_architecture }}'
     source: '{{ daos_repo_base_url }}/v{{ daos_version }}/Leap15/source'
 
 daos_repo_urls: '{{ _daos_repo_urls[ansible_distribution|replace(" ","_")|lower ~"_"~ ansible_distribution_version] |

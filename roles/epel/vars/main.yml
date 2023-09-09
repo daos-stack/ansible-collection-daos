@@ -32,7 +32,7 @@ epel_gpg_key: "https://dl.fedoraproject.org/pub/epel/RPM-GPG-KEY-EPEL-{{ epel_ve
 _epel_additional_repos:
   alma:
     - powertools
-  rocky_8:
+  rocky:
     - powertools
   stream:
     - powertools

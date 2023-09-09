@@ -1,4 +1,7 @@
 # This file contains ignores rule violations for ansible-lint
+
+roles/epel/molecule/default/verify.yml key-order[task]
+roles/epel/molecule/default/verify.yml fqcn[action-core]
 # roles/daos/tasks/certs.yml loop-var-prefix[missing]
 # roles/daos/tasks/certs.yml name[prefix]
 # roles/daos/tasks/certs.yml risky-file-permissions

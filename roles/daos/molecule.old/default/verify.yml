@@ -4,9 +4,7 @@
 - name: Verify
   hosts: all
   gather_facts: false
-  become: true
-
   tasks:
-    - name: Assert true
+    - name: Example assertion
       ansible.builtin.assert:
         that: true

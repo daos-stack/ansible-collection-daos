@@ -1,0 +1,160 @@
+---
+dependency:
+  name: galaxy
+  enabled: false
+  options:
+    role-file: requirements.yml
+    requirements-file: requirements.yml
+
+lint: |
+  set -e
+  yamllint .
+  # ansible-lint
+  # flake8
+
+driver:
+  name: podman
+
+platforms:
+  - name: "daos-${image:-almalinux8-systemd}-${tag:-latest}${TOX_ENVNAME}"
+    image: "${namespace:-quay.io/mark_olson/}/${image:-almalinux8-systemd}:${tag:-latest}"
+    command: /sbin/init
+    tmpfs:
+      - /run
+      - /tmp
+    volumes:
+      - /sys/fs/cgroup:/sys/fs/cgroup:ro
+    privileged: true
+    pre_build_image: true
+    capabilities:
+      - SYS_ADMIN
+
+  # - name: daos-almalinux8
+  #   image: quay.io/mark_olson/almalinux8-systemd:latest
+  #   command: /sbin/init
+  #   tmpfs:
+  #     - /run
+  #     - /tmp
+  #   volumes:
+  #     - /sys/fs/cgroup:/sys/fs/cgroup:ro
+  #   privileged: true
+  #   pre_build_image: true
+  #   capabilities:
+  #     - SYS_ADMIN
+  # - name: daos-almalinux9
+  #   image: quay.io/mark_olson/almalinux9-systemd:latest
+  #   tmpfs:
+  #     - /run
+  #     - /tmp
+  #   volumes:
+  #     - /sys/fs/cgroup:/sys/fs/cgroup:ro
+  #   privileged: true
+  #   pre_build_image: true
+  # - name: daos-amazonlinux2
+  #   image: quay.io/mark_olson/amazonlinux2-systemd:latest
+  #   tmpfs:
+  #     - /run
+  #     - /tmp
+  #   volumes:
+  #     - /sys/fs/cgroup:/sys/fs/cgroup:ro
+  #   privileged: true
+  #   pre_build_image: true
+  # - name: daos-centos7
+  #   image: quay.io/mark_olson/centos7-systemd:latest
+  #   tmpfs:
+  #     - /run
+  #     - /tmp
+  #   volumes:
+  #     - /sys/fs/cgroup:/sys/fs/cgroup:ro
+  #   privileged: true
+  #   pre_build_image: true
+  # - name: daos-debian11
+  #   image: quay.io/mark_olson/debian11-systemd:latest
+  #   tmpfs:
+  #     - /run
+  #     - /tmp
+  #   volumes:
+  #     - /sys/fs/cgroup:/sys/fs/cgroup:ro
+  #   privileged: true
+  #   pre_build_image: true
+  # - name: daos-fedora36
+  #   image: quay.io/mark_olson/fedora36-systemd:latest
+  #   tmpfs:
+  #     - /run
+  #     - /tmp
+  #   volumes:
+  #     - /sys/fs/cgroup:/sys/fs/cgroup:ro
+  #   privileged: true
+  #   pre_build_image: true
+  # - name: daos-opensuse-leap15.3
+  #   image: quay.io/mark_olson/opensuse-leap15.3-systemd:latest
+  #   tmpfs:
+  #     - /run
+  #     - /tmp
+  #   volumes:
+  #     - /sys/fs/cgroup:/sys/fs/cgroup:ro
+  #   privileged: true
+  #   pre_build_image: true
+  # - name: daos-opensuse-leap15.4
+  #   image: quay.io/mark_olson/opensuse-leap15.4-systemd:latest
+  #   tmpfs:
+  #     - /run
+  #     - /tmp
+  #   volumes:
+  #     - /sys/fs/cgroup:/sys/fs/cgroup:ro
+  #   privileged: true
+  #   pre_build_image: true
+  # - name: daos-rockylinux8
+  #   image: quay.io/mark_olson/rockylinux8-systemd:latest
+  #   tmpfs:
+  #     - /run
+  #     - /tmp
+  #   volumes:
+  #     - /sys/fs/cgroup:/sys/fs/cgroup:ro
+  #   privileged: true
+  #   pre_build_image: true
+  # - name: daos-rockylinux9
+  #   image: quay.io/mark_olson/rockylinux9-systemd:latest
+  #   tmpfs:
+  #     - /run
+  #     - /tmp
+  #   volumes:
+  #     - /sys/fs/cgroup:/sys/fs/cgroup:ro
+  #   privileged: true
+  #   pre_build_image: true
+  # - name: daos-ubuntu2204
+  #   image: quay.io/mark_olson/ubuntu22.04-systemd:latest
+  #   tmpfs:
+  #     - /run
+  #     - /tmp
+  #   volumes:
+  #     - /sys/fs/cgroup:/sys/fs/cgroup:ro
+  #   privileged: true
+  #   pre_build_image: true
+
+provisioner:
+  name: ansible
+verifier:
+  name: ansible
+scenario:
+  create_sequence:
+    - create
+  check_sequence:
+    - create
+    - converge
+    - check
+    - destroy
+  converge_sequence:
+    - create
+    - converge
+  destroy_sequence:
+    - destroy
+  test_sequence:
+    - lint
+    - destroy
+    - syntax
+    - create
+    - converge
+    # - idempotence
+    # - verify
+    # - destroy
