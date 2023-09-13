@@ -60,4 +60,4 @@
   register: tune_nic_queues
   failed_when: tune_nic_queues.rc != 0 and tune_nic_queues.stderr is not search("unmodified")
   changed_when: tune_nic_queues_current.stdout | int != tune_nic_queues_combined | int
-  when: falset (tune_nic_queues_auto_enabled | default(false) | bool)
+  when: not (tune_nic_queues_auto_enabled | default(false) | bool)
