@@ -98,10 +98,10 @@ daos_port: 10001
 
 
 # ------------------------------------------------------------------------------
-# Variables used for all daos_agent.yml and daos_server.yml configuration files
+# Access point and host list for /etc/daos/daos_*.yml configuration files
 # ------------------------------------------------------------------------------
 daos_access_points: []
-
+daos_host_list: []
 
 # ------------------------------------------------------------------------------
 # transport_config: section in all daos_*.yml configuration files
