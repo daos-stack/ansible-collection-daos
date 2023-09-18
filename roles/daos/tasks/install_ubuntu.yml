@@ -1,7 +1,7 @@
 ---
 # installation tasks file for daos on Ubuntu
 
-- name: Install dependent packages
+- name: daos | Install dependent packages
   ansible.builtin.package:
     name: '{{ daos_dep_pkgs }}'
     state: present

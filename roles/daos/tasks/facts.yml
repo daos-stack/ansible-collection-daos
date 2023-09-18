@@ -1,7 +1,7 @@
 ---
 # custom facts for the daos role
 
-- name: Create facts directory
+- name: daos | Create facts directory
   ansible.builtin.file:
     path: '/etc/ansible/facts.d'
     state: directory
@@ -9,12 +9,12 @@
     group: root
     mode: '0755'
 
-- name: Stat /etc/ansible/facts.d/daos.fact
+- name: daos | Stat /etc/ansible/facts.d/daos.fact
   ansible.builtin.stat:
     path: /etc/ansible/facts.d/daos.fact
   register: daos_fact
 
-- name: Copy daos facts script
+- name: daos | Copy daos facts script
   ansible.builtin.template:
     src: 'etc/ansible/facts.d/daos.fact.j2'
     dest: '/etc/ansible/facts.d/daos.fact'
@@ -23,7 +23,7 @@
     mode: '0755'
   register: daos_fact_script
 
-- name: Reload facts
+- name: daos | Reload facts
   ansible.builtin.setup:
     filter: ansible_local
   when: daos_fact_script.changed  # noqa no-handler

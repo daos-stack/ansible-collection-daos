@@ -1,0 +1,22 @@
+---
+# main tasks file for daos_certs
+
+- name: daos_certs | Import certgen tasks
+  ansible.builtin.import_tasks: certgen.yml
+  delegate_to: localhost
+  when: daos_certs_generate
+  tags:
+    - daos_certs
+
+- name: daos_certs | Import azure_key_vault tasks
+  ansible.builtin.import_tasks: azure_key_vault.yml
+  when:
+    - daos_certs_store_type | lower == "azure_key_vault"
+    - daos_certs_generate
+  tags:
+    - daos_certs
+
+- name: daos_certs | Import cert permissions tasks
+  ansible.builtin.import_tasks: cert_permissions.yml
+  tags:
+    - daos_certs

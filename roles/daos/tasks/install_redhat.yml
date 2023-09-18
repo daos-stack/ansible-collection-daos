@@ -1,7 +1,7 @@
 ---
 # installation tasks file for daos on RedHat family distros
 
-- name: Create repo file
+- name: daos | Create repo file
   ansible.builtin.template:
     src: 'repofiles/daos.repo.{{ ansible_pkg_mgr }}.j2'
     dest: '{{ daos_repo_files_dir }}/daos.repo'
@@ -9,18 +9,18 @@
     group: root
     mode: '0644'
 
-- name: Install dependent packages
+- name: daos | Install dependent packages
   ansible.builtin.package:
     name: '{{ daos_dep_pkgs }}'
     state: present
 
-- name: Install DAOS packages
+- name: daos | Install DAOS packages
   ansible.builtin.package:
     name: '{{ daos_pkgs[item] | default([]) }}'
     state: present
   loop: '{{ daos_roles }}'
 
-- name: Create daos server log directory
+- name: daos | Create daos server log directory
   ansible.builtin.file:
     path: "{{ daos_server_log_dir }}"
     state: directory
@@ -29,7 +29,7 @@
     mode: '0755'
   when: '"server" in daos_roles'
 
-- name: Enable daos_server service
+- name: daos | Enable daos_server service
   ansible.builtin.service:
     name: daos_server
     enabled: true

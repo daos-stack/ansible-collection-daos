@@ -1,0 +1,42 @@
+---
+# defaults file for daos_certs
+
+# If true, then the cert gen script will be run to generate self signed certs.
+# If false, then it will be assumed that the certs have already been generated
+# and are located in the path specified in the daos_certs_gen_ca_dir variable.
+daos_certs_generate: true
+daos_certs_ca_dir: /etc/daos/certs/daosCA
+
+# The gen_certificates.sh will create a daosCA directory within in the daos_certs_gen_dir
+daos_certs_gen_dir: /etc/daos
+daos_certs_gen_ca_dir: /etc/daos/daosCA
+daos_certs_dir: /etc/daos/certs
+
+# Whether or not to generate certs.
+# Default is false since most of the time this role will be used to pull certs
+# from a central store and copy them to the DAOS instance.
+daos_certs_generate: false
+
+# The type of centralized store for certificates.
+# Valid values are:
+#    none
+#    azure_key_vault
+#    gcp_secret_manager
+#    ibm_secrets_manager
+daos_certs_store_type: "none"
+
+# You must set this to true to push certs to centralized store
+daos_certs_store_push_enabled: false
+
+# You must set this to true to pull certs from centralized store
+daos_certs_store_pull_enabled: false
+
+# If both of the variables above are false, then this role will simply set
+# permissions on existing certificate and key files if they exist.
+
+# Azure key vault settings
+daos_certs_az_vault_name: daos
+daos_certs_az_vault_uri: ""  # https://daos-kv.vault.azure.net/
+
+daos_certs_daos_server_service_file: /usr/lib/systemd/system/daos_server.service
+daos_certs_daos_agent_service_file: /usr/lib/systemd/system/daos_agent.service

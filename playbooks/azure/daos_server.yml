@@ -1,29 +1,29 @@
 ---
-- name: Get VMSS Instance Information
+- name: Install and configure DAOS server
   hosts: localhost
   gather_facts: true
-
-  collections:
-    - azure.azcollection
+  connection: local
 
   vars:
-    daos_server_az_rg_name: "{{ az_rg_name | default('daos-rg') }}"
-    daos_server_az_vmss_name: "{{ az_vmss_name | default('daos-server-vmss') }}"
+    daos_server_az_rg_name: "{{ lookup('env', 'DAOS_AZ_CORE_RG_NAME') | default('daos-rg') }}"
+    daos_server_az_vmss_name: "{{ lookup('env', 'DAOS_AZ_ARM_SERVER_VMSS_NAME') | default('daos-server-vmss') }}"
     daos_server_az_vmss_max_retries: 30 # maximum number of retries (30 retries * 10 seconds = 5 minutes maximum wait time)
     daos_server_az_vmss_polling_interval: 10  # time in seconds between checks
+    daos_certs_az_vault_name: "{{ lookup('env', 'DAOS_AZ_CORE_KEY_VAULT_NAME') | default('daos-kv') }}"
+    daos_certs_az_vault_uri: "https://{{ daos_certs_az_vault_name }}.vault.azure.net"
 
   tasks:
-    # - name: Import selinux role
-    #   import_role:
-    #     name: daos_stack.daos.selinux
+    - name: Import selinux role
+      import_role:
+        name: daos_stack.daos.selinux
 
-    # - name: Import packages
-    #   import_role:
-    #     name: daos_stack.daos.packages
+    - name: Import packages
+      import_role:
+        name: daos_stack.daos.packages
 
-    # - name: Import tune
-    #   import_role:
-    #     name: daos_stack.daos.tune
+    - name: Import tune
+      import_role:
+        name: daos_stack.daos.tune
 
     - name: Get VMSS info
       azure.azcollection.azure_rm_virtualmachinescaleset_info:
@@ -40,10 +40,6 @@
         vmss_name: "{{ daos_server_az_vmss_name }}"
       register: daos_server_vmss_instance_info
 
-    - name: Debug daos_server_vmss_instance_info
-      ansible.builtin.debug:
-        var: daos_server_vmss_instance_info
-
     - name: Get bdev addresses
       ansible.builtin.shell: "lspci | grep 'Non-Volatile memory controller' | awk '{print $1}'"
       register: daos_server_lspci_output
@@ -54,27 +50,16 @@
         daos_server_bdev_list: '{{ daos_server_lspci_output.stdout_lines }}'
         daos_server_first_host_name: "{{ daos_server_vmss_instance_info.instances[0].computer_name }}"
         daos_host_list: "{{ daos_server_vmss_instance_info.instances | map(attribute='computer_name') | list }}"
-        _daos_access_points: >-
+        # Rules for determining list of Access Points (servers):
+        # 1. If 3 servers or less, all servers
+        # 2. If more than 3 servers, an odd number of servers
+        # 3. If more than 7 servers, max of 7 servers
+        daos_access_points: >-
           {% if daos_server_vmss_instance_info.instances|length <= 7 and daos_server_vmss_instance_info.instances|length is odd %} {{ daos_server_vmss_instance_info.instances|map(attribute='computer_name')|list }}
           {% elif daos_server_vmss_instance_info.instances|length <= 6 and daos_server_vmss_instance_info.instances|length is even %} {{ daos_server_vmss_instance_info.instances[:-1]|map(attribute='computer_name')|list }}
           {% elif daos_server_vmss_instance_info.instances|length > 7 %} {{ daos_server_vmss_instance_info.instances[:7]|map(attribute='computer_name')|list }}
           {% else %} []
           {% endif %}
-
-    - name: Set daos_access_points as a list
-      set_fact:
-        daos_access_points: "{{  daos_server_vmss_instance_info.instances | map(attribute='computer_name') | replace('\"', '') }}"
-
-        # daos_access_points: >-
-        #   {% if daos_server_vmss_instance_info.instances|length <= 7 and daos_server_vmss_instance_info.instances|length is odd %} {{ daos_server_vmss_instance_info.instances|map(attribute='computer_name')|list }}
-        #   {% elif daos_server_vmss_instance_info.instances|length <= 6 and daos_server_vmss_instance_info.instances|length is even %} {{ daos_server_vmss_instance_info.instances[:-1]|map(attribute='computer_name')|list }}
-        #   {% elif daos_server_vmss_instance_info.instances|length > 7 %} {{ daos_server_vmss_instance_info.instances[:7]|map(attribute='computer_name')|list }}
-        #   {% else %} []
-        #   {% endif %}
-
-    - name: DEBUG daos_access_points
-      debug:
-        msg: "{{ daos_server_vmss_instance_info.instances | map(attribute='computer_name') | to_json }}"
 
     - name: Add localhost to the group 'daos_admins'
       add_host:
@@ -82,6 +67,7 @@
         groups: 'daos_admins'
       delegate_to: localhost
       run_once: true
+      changed_when: false
 
     - name: Add localhost to the group 'daos_servers'
       add_host:
@@ -89,8 +75,17 @@
         groups: 'daos_servers'
       delegate_to: localhost
       run_once: true
+      changed_when: false
 
-    - name: Import daos
+    - name: Import daos_certs role
+      import_role:
+        name: daos_certs
+      vars:
+        daos_certs_store_type: azure_key_vault
+        daos_certs_store_push_enabled: "{{ ansible_hostname == daos_server_first_host_name }}"
+        daos_certs_store_pull_enabled: true
+
+    - name: Import daos role
       import_role:
         name: daos_stack.daos.daos
       vars:
@@ -99,10 +94,11 @@
           - server
         daos_deploy_certs: false
         daos_do_install: true
-        daos_do_configuration: false
+        daos_do_configuration: true
         daos_do_cert_gen: false
         daos_do_storage_format: false
         daos_do_storage_management: false
+        daos_server_user: root
         daos_transport_config_allow_insecure: false
         daos_server_engines:
           - targets: 2
@@ -121,41 +117,3 @@
                 class: ram
               - class: nvme
                 bdev_list: "{{ daos_server_bdev_list | to_json }}"
-
-    # - name: Tasks for first DAOS server instance
-    #   block:
-    #     - name: Debug daos_server_first_host_name
-    #       ansible.builtin.debug:
-    #         var: daos_server_first_host_name
-    #   when: ansible_hostname == daos_server_first_host_name
-
-    # # - name: Display VMSS instance details
-    # #   debug:
-    # #     var: daos_server_vmss_info
-
-    # # - name: Wait until VMSS provisioningState is Succeeded
-    # #   ansible.builtin.wait_for:
-    # #     timeout: "{{ polling_interval }}"
-    # #     delegate_to: localhost
-    # #   when: vmss_info.virtualmachine_scalesets[0].properties.provisioningState != "Succeeded"
-    # #   retries: "{{ max_retries }}"
-    # #   until: vmss_info.virtualmachine_scalesets[0].properties.provisioningState == "Succeeded"
-    # #   loop_control:
-    # #     delay: "{{ polling_interval }}"
-
-    # # - name: Retrieve VM instances in VMSS
-    # #   azure.azcollection.azure_rm_virtualmachinescalesetinstance_info:
-    # #     resource_group: "{{ daos_server_az_rg_name }}"
-    # #     vmss_name: "{{ daos_server_az_vmss_name }}"
-    # #   register: daos_server_vmss_instance_info
-
-    # # # - name: Display VMSS instance details
-    # # #   debug:
-    # # #     var: vmss_info
-
-    # # - name: Display VMSS instance details
-    # #   debug:
-    # #     msg: "{{ instance.computer_name }}"
-    # #   loop: "{{ daos_server_vmss_instance_info.instances }}"
-    # #   loop_control:
-    # #     loop_var: instance

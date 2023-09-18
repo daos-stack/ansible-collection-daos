@@ -1,14 +1,14 @@
 ---
 # assert tasks for the daos role
 
-- name: Verify daos_roles has been set
+- name: daos | Verify daos_roles has been set
   ansible.builtin.assert:
     that:
       - daos_roles is defined
       - daos_roles | length > 0
     fail_msg: The daos_roles variable must contain a value.
 
-- name: Verify Distro Version is supported
+- name: daos | Verify Distro Version is supported
   ansible.builtin.assert:
     that:
       - daos_distro_is_supported | default(False) == True

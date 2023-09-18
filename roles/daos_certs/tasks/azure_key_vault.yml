@@ -1,0 +1,78 @@
+---
+# azure key vault tasks file for daos_certs role
+
+- name: daos_certs | Convert cert files to base64
+  ansible.builtin.shell: base64 "{{ item }}" > "{{ item }}.base64"
+  args:
+    chdir: "{{ daos_certs_ca_dir }}/certs"
+    creates: "{{ daos_certs_ca_dir }}/certs/{{ item }}.base64"
+  loop:
+    - daosCA.crt
+    - admin.crt
+    - admin.key
+    - agent.crt
+    - agent.key
+    - server.crt
+    - server.key
+  when:
+    - daos_certs_generate
+    - daos_certs_store_push_enabled
+
+- name: daos_certs | Add certs and keys as secrets in Azure Key Vault
+  azure.azcollection.azure_rm_keyvaultsecret:
+    secret_name: "{{ daos_certs_cert.secret_name }}"
+    secret_value: "{{ lookup('file', daos_certs_cert.base64_file) }}"
+    keyvault_uri: "{{ daos_certs_az_vault_uri }}"
+  loop:
+    - { secret_name: "daosca-cert",
+        base64_file: "{{ daos_certs_ca_dir }}/certs/daosCA.crt.base64" }
+    - { secret_name: "admin-cert",
+        base64_file: "{{ daos_certs_ca_dir }}/certs/admin.crt.base64" }
+    - { secret_name: "admin-key",
+        base64_file: "{{ daos_certs_ca_dir }}/certs/admin.key.base64" }
+    - { secret_name: "agent-cert",
+        base64_file: "{{ daos_certs_ca_dir }}/certs/agent.crt.base64" }
+    - { secret_name: "agent-key",
+        base64_file: "{{ daos_certs_ca_dir }}/certs/agent.key.base64" }
+    - { secret_name: "server-cert",
+        base64_file: "{{ daos_certs_ca_dir }}/certs/server.crt.base64" }
+    - { secret_name: "server-key",
+        base64_file: "{{ daos_certs_ca_dir }}/certs/server.key.base64" }
+  loop_control:
+    loop_var: daos_certs_cert
+  when:
+    - daos_certs_generate
+    - daos_certs_store_push_enabled
+
+- name: daos_certs | Retrieve secrets from Azure Key Vault
+  azure.azcollection.azure_rm_keyvaultsecret_info:
+    name: "{{ cert.secret_name }}"
+    vault_uri: "{{ daos_certs_az_vault_uri }}"
+  register: daos_certs_kv_secret
+  loop:
+    - { secret_name: "daosca-cert", output_file: "/etc/daos/certs/daosCA.crt" }
+    - { secret_name: "admin-cert", output_file: "/etc/daos/certs/admin.crt" }
+    - { secret_name: "admin-key", output_file: "/etc/daos/certs/admin.key" }
+    - { secret_name: "agent-cert", output_file: "/etc/daos/certs/agent.crt" }
+    - { secret_name: "agent-cert", output_file: "/etc/daos/certs/clients/agent.crt" }
+    - { secret_name: "agent-key", output_file: "/etc/daos/certs/agent.key" }
+    - { secret_name: "server-cert", output_file: "/etc/daos/certs/server.crt" }
+    - { secret_name: "server-key", output_file: "/etc/daos/certs/server.key" }
+  loop_control:
+    loop_var: cert
+  when:
+    - daos_certs_store_pull_enabled
+
+- name: daos_certs | Write decoded secret to file
+  ansible.builtin.copy:
+    content: "{{ cert.secrets[0]['secret'] | b64decode }}"
+    dest: "{{ cert.cert.output_file }}"
+    owner: root
+    group: root
+    mode: '0600'
+  loop: "{{ daos_certs_kv_secret.results }}"
+  loop_control:
+    loop_var: cert
+    label: "{{ cert.cert.output_file }}"
+  when:
+    - daos_certs_store_pull_enabled

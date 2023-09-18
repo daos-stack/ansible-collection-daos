@@ -1,21 +1,21 @@
 ---
 # storage administration tasks for the daos role
 
-- name: Set fact containing ip addresses of all servers
+- name: daos | Set fact containing ip addresses of all servers
   ansible.builtin.set_fact:
     daos_server_ips: "{{ groups['daos_servers'] | map('extract', hostvars, ['ansible_host']) | join(',') }}"
 
 # Flush handlers here because we need all services to be started before continuing
-- name: Flush handlers
+- name: daos | Flush handlers
   ansible.builtin.meta: flush_handlers
 
-- name: Ensure that the daos_server service is started
+- name: daos | Ensure that the daos_server service is started
   ansible.builtin.service:
     name: daos_server
     state: started
   when: daos_role_server in daos_roles
 
-- name: Wait for daos port
+- name: daos | Wait for daos port
   ansible.builtin.wait_for:
     port: "{{ daos_port | default('10001') }}"
     state: started
@@ -26,7 +26,7 @@
   changed_when: false
   when: daos_role_server in daos_roles
 
-- name: Ensure that the daos_agent service is started
+- name: daos | Ensure that the daos_agent service is started
   ansible.builtin.service:
     name: daos_agent
     state: started
@@ -34,7 +34,7 @@
 
 # FIX: This is very fragile!
 #      https://daosio.atlassian.net/browse/DAOS-12293
-- name: Determine if storage needs to be formatted
+- name: daos | Determine if storage needs to be formatted
   ansible.builtin.shell: |
     set -o pipefail
     dmg system query -v -j 2>/dev/null | jq -r '.error'
@@ -44,12 +44,12 @@
     ("system is uninitialized (storage format required?)" not in daos_format_needed.stdout)
   when: inventory_hostname == groups['daos_admins'][0]
 
-- name: Show output from dmg system query command
+- name: daos | Show output from dmg system query command
   ansible.builtin.debug:
     var: daos_format_needed
   when: inventory_hostname == groups['daos_admins'][0]
 
-- name: Format storage
+- name: daos | Format storage
   # noqa no-changed-when
   ansible.builtin.command: "dmg storage format -l '{{ daos_server_ips }}'"
   when: (inventory_hostname == groups['daos_admins'][0]) and
@@ -58,7 +58,7 @@
 
 # After running 'dmg storage format' running 'dmg system query -v' will block until
 # the system is initialized. Do not continue until all of the servers have joined.
-- name: Wait for system to initialize
+- name: daos | Wait for system to initialize
   # no command-instead-of-shell
   ansible.builtin.shell: |
     set -o pipefail
@@ -73,7 +73,7 @@
 # NOTE: Make sure that the daos_pools variable is defined in the
 #       group_vars/daos_admin/daos or group_vars/all/daos file!
 #       If defined elsewhere, this task won't run.
-- name: Create pools
+- name: daos | Create pools
   ansible.builtin.shell: |
     set -o pipefail
     if [[ ! $(dmg pool list -j | jq -r '.response.pools[] | select(.label=="{{ pool.label }}") | .label') == "{{ pool.label }}" ]]; then

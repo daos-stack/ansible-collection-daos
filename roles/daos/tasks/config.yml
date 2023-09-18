@@ -1,7 +1,7 @@
 ---
 # main configuration tasks for the daos role
 
-- name: Create daos_control.yml file
+- name: daos | Create daos_control.yml file
   ansible.builtin.template:
     src: 'etc/daos/{{ daos_config_version }}/daos_control.yml.j2'
     dest: '/etc/daos/daos_control.yml'
@@ -10,14 +10,14 @@
     mode: '0644'
     backup: true
 
-- name: Include server configuration tasks
+- name: daos | Include server configuration tasks
   ansible.builtin.import_tasks: config_server.yml
   when: daos_role_server in daos_roles
 
-- name: Include client configuration tasks
+- name: daos | Include client configuration tasks
   ansible.builtin.import_tasks: config_client.yml
   when: daos_role_client in daos_roles
 
-- name: Include admin configuration tasks
+- name: daos | Include admin configuration tasks
   ansible.builtin.import_tasks: config_admin.yml
   when: daos_role_admin in daos_roles

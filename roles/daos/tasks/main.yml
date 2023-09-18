@@ -1,7 +1,7 @@
 ---
 # main tasks file for daos role
 
-- name: Import assert.yml
+- name: daos | Import assert.yml
   ansible.builtin.import_tasks: assert.yml
   run_once: true
   delegate_to: localhost
@@ -12,7 +12,7 @@
     - daos_certs
     - daos_storage
 
-- name: Install ansible facts for daos
+- name: daos | Install ansible facts for daos
   ansible.builtin.import_tasks: facts.yml
   tags:
     - daos
@@ -21,7 +21,7 @@
     - daos_certs
     - daos_storage
 
-- name: Include distro family specific install.yml
+- name: daos | Include distro family specific install.yml
   ansible.builtin.include_tasks:
     file: '{{ daos_install_task_file }}'
     apply:
@@ -33,7 +33,7 @@
     - daos
     - daos_install
 
-- name: Include certificate deployment tasks
+- name: daos | Include certificate deployment tasks
   ansible.builtin.import_tasks: certs.yml
   when:
     - daos_do_cert_gen
@@ -42,7 +42,11 @@
     - daos
     - daos_certs
 
-- name: Include config tasks
+- name: DEBUG daos_do_configuration
+  debug:
+    var: daos_do_configuration
+
+- name: daos | Include config tasks
   ansible.builtin.import_tasks: config.yml
   when:
     - daos_do_configuration
@@ -51,7 +55,7 @@
     - daos
     - daos_config
 
-- name: Include storage management tasks
+- name: daos | Include storage management tasks
   ansible.builtin.include_tasks:
     file: storage.yml
     apply:

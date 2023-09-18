@@ -1,0 +1,73 @@
+---
+# cert permissions tasks file for daos_certs role
+
+- name: daos_certs | Stat daos_server.service file
+  ansible.builtin.stat:
+    path: "{{ daos_certs_daos_server_service_file }}"
+  register: daos_certs_server_service_file
+
+- name: daos_certs | Read content from daos_server.service file
+  shell: "grep '^User=' {{ daos_certs_daos_server_service_file }} | awk -F'=' '{print $2}'"
+  register: daos_certs_server_service_file_user_grep
+  when:
+    - daos_certs_server_service_file.stat is defined
+    - daos_certs_server_service_file.stat.exists
+  changed_when: false
+
+- name: daos_certs | Set daos_server user fact
+  set_fact:
+    daos_certs_daos_server_user: "{{ daos_certs_server_service_file_user_grep.stdout }}"
+  when:
+    - daos_certs_server_service_file.stat is defined
+    - daos_certs_server_service_file.stat.exists
+
+- name: daos_certs | Stat daos_agent.service file
+  ansible.builtin.stat:
+    path: "{{ daos_certs_daos_agent_service_file }}"
+  register: daos_certs_agent_service_file_stat
+
+- name: daos_certs | Read content from daos_agent.service file
+  shell: "grep '^User=' {{ daos_certs_daos_agent_service_file }} | awk -F'=' '{print $2}'"
+  register: daos_certs_agent_service_file_user_grep
+  when:
+    - daos_certs_agent_service_file_stat.stat is defined
+    - daos_certs_agent_service_file_stat.stat.exists
+  changed_when: false
+
+- name: daos_certs | Set daos_agent user fact
+  set_fact:
+    daos_certs_daos_agent_user: "{{ daos_certs_agent_service_file_user_grep.stdout }}"
+  when:
+    - daos_certs_agent_service_file_stat.stat is defined
+    - daos_certs_agent_service_file_stat.stat.exists
+
+- name: daos_certs | Check if cert dirs and files exist
+  ansible.builtin.stat:
+    path: "{{ daos_certs_cert_path.file }}"
+  register: daos_certs_paths
+  loop:
+    - { file: "/etc/daos/certs", owner: "{{ daos_certs_daos_server_user }}", mode: '755' }
+    - { file: "/etc/daos/certs/clients", owner: "{{ daos_certs_daos_server_user }}", mode: '750' }
+    - { file: "/etc/daos/certs/daosCA.crt", owner: "{{ daos_certs_daos_server_user }}", mode: '0644' }
+    - { file: "/etc/daos/certs/admin.crt", owner: "root", mode: '0644' }
+    - { file: "/etc/daos/certs/admin.key", owner: "root", mode: '0600' }
+    - { file: "/etc/daos/certs/clients/agent.crt", owner: "{{ daos_certs_daos_server_user }}", mode: '0644' }
+    - { file: "/etc/daos/certs/agent.crt", owner: "{{ daos_certs_daos_agent_user }}", mode: '0644' }
+    - { file: "/etc/daos/certs/agent.key", owner: "{{ daos_certs_daos_agent_user }}", mode: '0600' }
+    - { file: "/etc/daos/certs/server.crt", owner: "{{ daos_certs_daos_server_user }}", mode: '0644' }
+    - { file: "/etc/daos/certs/server.key", owner: "{{ daos_certs_daos_server_user }}", mode: '0600' }
+  loop_control:
+    loop_var: daos_certs_cert_path
+
+- name: daos_certs | Set permissions on cert dirs and files
+  ansible.builtin.file:
+    path: "{{ item.daos_certs_cert_path.file }}"
+    owner: "{{ item.daos_certs_cert_path.owner | default('root') }}"
+    group: "{{ item.daos_certs_cert_path.group | default(item.daos_certs_cert_path.owner) | default('root') }}"
+    mode: "{{ item.daos_certs_cert_path.mode }}"
+  loop: "{{ daos_certs_paths.results }}"
+  loop_control:
+    label: "{{ item.daos_certs_cert_path.file }}"
+  when:
+    - item.stat is defined
+    - item.stat.exists
