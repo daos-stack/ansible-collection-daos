@@ -61,10 +61,10 @@
   azure.azcollection.azure_rm_keyvaultsecret_info:
     name: "{{ cert.secret_name }}"
     vault_uri: "{{ daos_certs_az_vault_uri }}"
-  register: daos_certs_kv_secret_info
   until: daos_certs_kv_secret_info.secrets is defined and (daos_certs_kv_secret_info.secrets | length) > 0
   retries: 30
   delay: 10
+  register: daos_certs_kv_secret_info
   loop:
     - { secret_name: "daosca-cert", output_file: "/etc/daos/certs/daosCA.crt" }
     - { secret_name: "admin-cert", output_file: "/etc/daos/certs/admin.crt" }
@@ -78,7 +78,11 @@
     loop_var: cert
   when:
     - daos_certs_store_pull_enabled
-  failed_when: daos_certs_kv_secret_info.retries == 0
+  #failed_when: daos_certs_kv_secret_info.retries == 0
+
+- name: DEBUG daos_certs_kv_secret_info
+  ansible.builtin.debug:
+    var: daos_certs_kv_secret_info
 
 - name: daos_certs | Write decoded secret to file
   ansible.builtin.copy:
