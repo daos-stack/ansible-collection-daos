@@ -9,7 +9,7 @@
     daos_server_az_vmss_name: "{{ lookup('env', 'DAOS_AZ_ARM_SERVER_VMSS_NAME') | default('daos-server-vmss') }}"
     daos_server_az_vmss_max_retries: 30 # maximum number of retries (30 retries * 10 seconds = 5 minutes maximum wait time)
     daos_server_az_vmss_polling_interval: 10  # time in seconds between checks
-    daos_certs_az_vault_name: "{{ lookup('env', 'DAOS_AZ_CORE_KEY_VAULT_NAME') | default('daos-kv') }}"
+    daos_certs_az_vault_name: "{{ lookup('env', 'DAOS_AZ_ARM_KEY_VAULT_NAME') | default('daos-kv') }}"
     daos_certs_az_vault_uri: "https://{{ daos_certs_az_vault_name }}.vault.azure.net"
 
   tasks:
@@ -68,18 +68,22 @@
         daos_host_list: "{{ daos_server_vmss_instance_info.instances | map(attribute='computer_name') | list }}"
         daos_access_points: "{{ daos_server_vmss_instance_info.instances | map(attribute='computer_name') | list | daos_stack.daos.daos_access_points}}"
 
-    - name: Add localhost to the group 'daos_admins'
-      add_host:
-        name: 'localhost'
-        groups: 'daos_admins'
-      delegate_to: localhost
-      run_once: true
-      changed_when: false
+    - name: DEBUG daos_server_first_host_name
+      ansible.builtin.debug:
+        var: daos_server_first_host_name
 
-    - name: Add localhost to the group 'daos_servers'
+    - name: DEBUG ansible_hostname
+      ansible.builtin.debug:
+        var: ansible_hostname
+
+    - name: Add localhost to the inventory groups
       add_host:
-        name: 'localhost'
-        groups: 'daos_servers'
+        name: localhost
+        groups: "{{ item }}"
+      loop:
+        - daos_admins
+        - daos_servers
+        - daos_clients
       delegate_to: localhost
       run_once: true
       changed_when: false
@@ -91,6 +95,10 @@
         daos_certs_store_type: azure_key_vault
         daos_certs_store_push_enabled: "{{ ansible_hostname == daos_server_first_host_name }}"
         daos_certs_store_pull_enabled: true
+
+    - name: DEBUG daos_certs_store_push_enabled
+      ansible.builtin.debug:
+        var: daos_certs_store_push_enabled
 
     - name: Import daos role
       import_role:
