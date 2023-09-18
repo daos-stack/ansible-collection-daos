@@ -26,7 +26,15 @@ port: {{ daos_port }}
 
 # Hostlist, a comma separated list of addresses (hostnames or IPv4 addresses).
 # default: ['localhost']
-hostlist: {{ daos_host_list | to_json }}
+{% if hostlist %}
+access_points:
+{% for host in hostlist %}
+  - {{ host }}
+{% endfor %}
+{% else %}
+access_points:
+  - 127.0.0.1
+{% endif %}
 
 ## Transport Credentials Specifying certificates to secure communications
 

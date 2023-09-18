@@ -23,7 +23,15 @@
 # Management server access points
 # Must have the same value for all agents and servers in a system.
 # default: hostname of this node
-access_points: {{ daos_access_points | to_json }}
+{% if daos_access_points %}
+access_points:
+{% for access_point in daos_access_points %}
+  - {{ access_point }}
+{% endfor %}
+{% else %}
+access_points:
+  - 127.0.0.1
+{% endif %}
 
 # Force different port number to connect to access points.
 # default: 10001

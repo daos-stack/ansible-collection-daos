@@ -50,16 +50,7 @@
         daos_server_bdev_list: '{{ daos_server_lspci_output.stdout_lines }}'
         daos_server_first_host_name: "{{ daos_server_vmss_instance_info.instances[0].computer_name }}"
         daos_host_list: "{{ daos_server_vmss_instance_info.instances | map(attribute='computer_name') | list }}"
-        # Rules for determining list of Access Points (servers):
-        # 1. If 3 servers or less, all servers
-        # 2. If more than 3 servers, an odd number of servers
-        # 3. If more than 7 servers, max of 7 servers
-        daos_access_points: >-
-          {% if daos_server_vmss_instance_info.instances|length <= 7 and daos_server_vmss_instance_info.instances|length is odd %} {{ daos_server_vmss_instance_info.instances|map(attribute='computer_name')|list }}
-          {% elif daos_server_vmss_instance_info.instances|length <= 6 and daos_server_vmss_instance_info.instances|length is even %} {{ daos_server_vmss_instance_info.instances[:-1]|map(attribute='computer_name')|list }}
-          {% elif daos_server_vmss_instance_info.instances|length > 7 %} {{ daos_server_vmss_instance_info.instances[:7]|map(attribute='computer_name')|list }}
-          {% else %} []
-          {% endif %}
+        daos_access_points: "{{ daos_server_vmss_instance_info.instances | map(attribute='computer_name') | list | daos_stack.daos.daos_access_points}}"
 
     - name: Add localhost to the group 'daos_admins'
       add_host:
