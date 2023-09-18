@@ -42,10 +42,6 @@
     - daos
     - daos_certs
 
-- name: DEBUG daos_do_configuration
-  debug:
-    var: daos_do_configuration
-
 - name: Include config tasks
   ansible.builtin.import_tasks: config.yml
   when:

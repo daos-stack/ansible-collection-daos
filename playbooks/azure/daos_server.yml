@@ -13,22 +13,6 @@
     daos_certs_az_vault_uri: "https://{{ daos_certs_az_vault_name }}.vault.azure.net"
 
   tasks:
-    - name: DEBUG daos_server_az_rg_name
-      ansible.builtin.debug:
-        var: daos_server_az_rg_name
-
-    - name: DEBUG daos_server_az_vmss_name
-      ansible.builtin.debug:
-        var: daos_server_az_vmss_name
-
-    - name: DEBUG daos_certs_az_vault_name
-      ansible.builtin.debug:
-        var: daos_certs_az_vault_name
-
-    - name: DEBUG daos_certs_az_vault_uri
-      ansible.builtin.debug:
-        var: daos_certs_az_vault_uri
-
     - name: Import selinux role
       import_role:
         name: daos_stack.daos.selinux
@@ -67,14 +51,6 @@
         daos_server_first_host_name: "{{ daos_server_vmss_instance_info.instances[0].computer_name }}"
         daos_host_list: "{{ daos_server_vmss_instance_info.instances | map(attribute='computer_name') | list }}"
         daos_access_points: "{{ daos_server_vmss_instance_info.instances | map(attribute='computer_name') | list | daos_stack.daos.daos_access_points}}"
-
-    - name: DEBUG daos_server_first_host_name
-      ansible.builtin.debug:
-        var: daos_server_first_host_name
-
-    - name: DEBUG ansible_hostname
-      ansible.builtin.debug:
-        var: ansible_hostname
 
     - name: Add localhost to the inventory groups
       add_host:

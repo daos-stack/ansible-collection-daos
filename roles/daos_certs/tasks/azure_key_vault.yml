@@ -44,10 +44,6 @@
     - daos_certs_generate
     - daos_certs_store_push_enabled
 
-- name: DEBUG daos_certs_store_pull_enabled
-  debug:
-    var: daos_certs_store_pull_enabled
-
 - name: Create /etc/daos/certs/clients dir
   ansible.builtin.file:
     path: /etc/daos/certs/clients
