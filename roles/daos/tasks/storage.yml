@@ -77,7 +77,7 @@
   ansible.builtin.shell: |
     set -o pipefail
     if [[ ! $(dmg pool list -j | jq -r '.response.pools[] | select(.label=="{{ pool.label }}") | .label') == "{{ pool.label }}" ]]; then
-      dmg pool create -z {{ pool.size }} -t {{ pool.tier_ratio }} -u {{ pool.user }} --label="{{ pool.label }}"
+      dmg pool create -z {{ pool.size }} -u {{ pool.user }} "{{ pool.label }}"
       dmg pool set-prop "{{ pool.label }}" --name=reclaim --value=disabled
       {% for acl in pool.acls %}
         dmg pool update-acl -e "{{ acl }}" {{ pool.label }}
