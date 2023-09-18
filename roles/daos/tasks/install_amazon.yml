@@ -1,13 +1,13 @@
 ---
 # installation tasks file for daos on Amazon Linux
 
-- name: daos | Get epel status
+- name: Get epel status
   # noqa no-changed-when
   ansible.builtin.command: amazon-linux-extras list | grep epel | awk '{print $3}'
   register: daos_amazon_epel_status
   changed_when: false
 
-- name: daos | Install epel from amazon-linux-extras
+- name: Install epel from amazon-linux-extras
   # noqa no-changed-when
   ansible.builtin.command: amazon-linux-extras install -y epel
   when: daos_amazon_epel_status.stdout == 'available'

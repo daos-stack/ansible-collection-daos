@@ -1,7 +1,7 @@
 ---
 # certificate generation tasks for the daos role
 
-- name: daos | Generate self signed certificates
+- name: Generate self signed certificates
   ansible.builtin.command:
   args:
     cmd: "{{ daos_certs_gen_script_path }}"
@@ -10,20 +10,20 @@
   when: (daos_certs_gen_enable | default(false) | bool) and
         inventory_hostname == groups['daos_admins'][0]
 
-- name: daos | Create certs directory
+- name: Create certs directory
   ansible.builtin.file:
     path: "{{ daos_certs_dir }}"
     state: directory
     mode: '0755'
 
-- name: daos | Create client certs directory (server)
+- name: Create client certs directory (server)
   ansible.builtin.file:
     path: "{{ daos_certs_dir }}/clients"
     state: directory
     mode: '0755'
   when: daos_role_server in daos_roles
 
-- name: daos | Create admin certs directory (admin)
+- name: Create admin certs directory (admin)
   ansible.builtin.file:
     path: "{{ daos_admin_certs_dir }}"
     state: directory
@@ -32,7 +32,7 @@
     mode: '0755'
   when: daos_role_admin in daos_roles
 
-- name: daos | Copy server certs
+- name: Copy server certs
   ansible.posix.synchronize:
     src: "{{ item.src }}"
     dest: "{{ item.dest }}"
@@ -57,7 +57,7 @@
   delegate_to: "{{ groups['daos_admins'][0] }}"
   when: daos_role_server in daos_roles
 
-- name: daos | Copy client certs
+- name: Copy client certs
   # noqa yaml[indentation]
   ansible.posix.synchronize:
     src: "{{ item.src }}"
@@ -81,7 +81,7 @@
   delegate_to: "{{ groups['daos_admins'][0] }}"
   when: daos_role_client in daos_roles
 
-- name: daos | Copy admin certs
+- name: Copy admin certs
   ansible.posix.synchronize:
     src: "{{ item.src }}"
     dest: "{{ item.dest }}"
@@ -108,7 +108,7 @@
   delegate_to: "{{ groups['daos_admins'][0] }}"
   when: daos_role_admin in daos_roles
 
-- name: daos | Set cert permissions (DAOS server)
+- name: Set cert permissions (DAOS server)
   ansible.builtin.file:
     path: /etc/daos/certs
     state: directory
@@ -117,7 +117,7 @@
     group: "{{ ansible_local.daos.iommu_enabled | ternary(daos_server_user, 'root') }}"
   when: daos_role_server in daos_roles
 
-- name: daos | Set cert permissions (DAOS client)
+- name: Set cert permissions (DAOS client)
   ansible.builtin.file:
     path: /etc/daos/certs
     state: directory
@@ -126,7 +126,7 @@
     group: "{{ daos_agent_user }}"
   when: daos_role_client in daos_roles
 
-- name: daos | Set cert permissions (DAOS admin home dir)
+- name: Set cert permissions (DAOS admin home dir)
   ansible.builtin.file:
     path: "{{ daos_admin_certs_dir }}"
     state: directory
@@ -135,7 +135,7 @@
     group: "{{ daos_admin_user }}"
   when: daos_role_admin in daos_roles
 
-- name: daos | Set cert permissions (admin certs)
+- name: Set cert permissions (admin certs)
   ansible.builtin.file:
     path: "{{ cert_perm.path }}"
     state: directory

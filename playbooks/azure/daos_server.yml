@@ -129,3 +129,9 @@
         daos_certs_generate: "{{ ansible_hostname == daos_server_first_host_name }}"
         daos_certs_store_push_enabled: "{{ ansible_hostname == daos_server_first_host_name }}"
         daos_certs_store_pull_enabled: true
+
+    - name: Restart daos_server service
+      ansible.builtin.service:
+        name: daos_server
+        state: restarted
+      when: daos_certs_path_permissions.results | selectattr('changed','equalto',true) | list | count > 0

@@ -1,7 +1,7 @@
 ---
 # installation tasks file for daos on debian
 
-- name: daos | Install dependent packages
+- name: Install dependent packages
   ansible.builtin.package:
     name: '{{ daos_dep_pkgs }}'
     state: present

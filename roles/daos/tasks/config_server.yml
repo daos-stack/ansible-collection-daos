@@ -1,7 +1,7 @@
 ---
 # DAOS server node configuration tasks for the daos role
 
-- name: daos | Create daos_server.yml file
+- name: Create daos_server.yml file
   ansible.builtin.template:
     src: 'etc/daos/{{ daos_config_version }}/daos_server.yml.j2'
     dest: '/etc/daos/daos_server.yml'
@@ -12,7 +12,7 @@
   notify: Restart daos_server service
 
 # If iommu is not enabled, then the daos_server service must run as root.
-- name: daos | Set user and group in daos_server service
+- name: Set user and group in daos_server service
   ansible.builtin.lineinfile:
     path: /usr/lib/systemd/system/daos_server.service
     regexp: "^{{ item.key }}=.*"
@@ -22,7 +22,7 @@
     - { key: "Group", value: "{{ ansible_local.daos.iommu_enabled | ternary(daos_server_user, 'root') }}" }
   register: daos_server_service_file
 
-- name: daos | Re-read systemd service files
+- name: Re-read systemd service files
   ansible.builtin.systemd:
     daemon_reload: true
   when: daos_server_service_file.changed
