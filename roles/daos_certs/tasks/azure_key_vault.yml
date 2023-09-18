@@ -61,8 +61,8 @@
   azure.azcollection.azure_rm_keyvaultsecret_info:
     name: "{{ cert.secret_name }}"
     vault_uri: "{{ daos_certs_az_vault_uri }}"
-  register: daos_certs_kv_secret
-  until: daos_certs_kv_secret.secrets is defined and (daos_certs_kv_secret.secrets | length) > 0
+  register: daos_certs_kv_secret_info
+  until: daos_certs_kv_secret_info.secrets is defined and (daos_certs_kv_secret_info.secrets | length) > 0
   retries: 30
   delay: 10
   loop:
@@ -78,18 +78,18 @@
     loop_var: cert
   when:
     - daos_certs_store_pull_enabled
-  failed_when: daos_certs_kv_secret_attempt.retries == 0
+  failed_when: daos_certs_kv_secret_info.retries == 0
 
 - name: daos_certs | Write decoded secret to file
   ansible.builtin.copy:
-    content: "{{ cert.secrets[0]['secret'] | b64decode }}"
-    dest: "{{ cert.cert.output_file }}"
+    content: "{{ daos_certs_cert.secrets[0]['secret'] | b64decode }}"
+    dest: "{{ daos_certs_cert.cert.output_file }}"
     owner: root
     group: root
     mode: '0600'
-  loop: "{{ daos_certs_kv_secret.results }}"
+  loop: "{{ daos_certs_kv_secret_info.results }}"
   loop_control:
-    loop_var: cert
-    label: "{{ cert.cert.output_file }}"
+    loop_var: daos_certs_cert
+    label: "{{ daos_certs_cert.cert.output_file }}"
   when:
     - daos_certs_store_pull_enabled
