@@ -4,7 +4,6 @@
 # If true, then the cert gen script will be run to generate self signed certs.
 # If false, then it will be assumed that the certs have already been generated
 # and are located in the path specified in the daos_certs_gen_ca_dir variable.
-daos_certs_generate: true
 daos_certs_ca_dir: /etc/daos/certs/daosCA
 
 # The gen_certificates.sh will create a daosCA directory within in the daos_certs_gen_dir
