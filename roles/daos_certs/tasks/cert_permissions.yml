@@ -50,12 +50,12 @@
     - { file: "/etc/daos/certs/clients", owner: "{{ daos_certs_daos_server_user }}", mode: '750' }
     - { file: "/etc/daos/certs/daosCA.crt", owner: "{{ daos_certs_daos_server_user }}", mode: '0644' }
     - { file: "/etc/daos/certs/admin.crt", owner: "root", mode: '0644' }
-    - { file: "/etc/daos/certs/admin.key", owner: "root", mode: '0600' }
+    - { file: "/etc/daos/certs/admin.key", owner: "root", mode: '0400' }
     - { file: "/etc/daos/certs/clients/agent.crt", owner: "{{ daos_certs_daos_server_user }}", mode: '0644' }
     - { file: "/etc/daos/certs/agent.crt", owner: "{{ daos_certs_daos_agent_user }}", mode: '0644' }
-    - { file: "/etc/daos/certs/agent.key", owner: "{{ daos_certs_daos_agent_user }}", mode: '0600' }
+    - { file: "/etc/daos/certs/agent.key", owner: "{{ daos_certs_daos_agent_user }}", mode: '0400' }
     - { file: "/etc/daos/certs/server.crt", owner: "{{ daos_certs_daos_server_user }}", mode: '0644' }
-    - { file: "/etc/daos/certs/server.key", owner: "{{ daos_certs_daos_server_user }}", mode: '0600' }
+    - { file: "/etc/daos/certs/server.key", owner: "{{ daos_certs_daos_server_user }}", mode: '0400' }
   loop_control:
     loop_var: daos_certs_cert_path
 

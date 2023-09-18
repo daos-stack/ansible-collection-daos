@@ -27,7 +27,15 @@
 ## up in port: will be used if a port is not specified here.
 #
 ## default: hostname of this node
-access_points: {{ daos_access_points | to_json }}
+{% if daos_access_points %}
+access_points:
+{% for access_point in daos_access_points %}
+  - {{ access_point }}
+{% endfor %}
+{% else %}
+access_points:
+  - 127.0.0.1
+{% endif %}
 #
 #
 ## Control plane metadata
