@@ -48,6 +48,15 @@
   debug:
     var: daos_certs_store_pull_enabled
 
+- name: daos_certs | Create /etc/daos/certs/clients dir
+  ansible.builtin.file:
+    path: /etc/daos/certs/clients
+    state: directory
+    recurse: true
+    owner: root
+    group: root
+    mode: '0700'
+
 - name: daos_certs | Retrieve secrets from Azure Key Vault
   azure.azcollection.azure_rm_keyvaultsecret_info:
     name: "{{ cert.secret_name }}"
