@@ -88,19 +88,6 @@
       run_once: true
       changed_when: false
 
-    - name: Import daos_certs role
-      import_role:
-        name: daos_certs
-      vars:
-        daos_certs_store_type: azure_key_vault
-        daos_certs_generate: "{{ ansible_hostname == daos_server_first_host_name }}"
-        daos_certs_store_push_enabled: "{{ ansible_hostname == daos_server_first_host_name }}"
-        daos_certs_store_pull_enabled: true
-
-    - name: DEBUG daos_certs_store_push_enabled
-      ansible.builtin.debug:
-        var: daos_certs_store_push_enabled
-
     - name: Import daos role
       import_role:
         name: daos_stack.daos.daos
@@ -133,3 +120,12 @@
                 class: ram
               - class: nvme
                 bdev_list: "{{ daos_server_bdev_list | to_json }}"
+
+    - name: Import daos_certs role
+      import_role:
+        name: daos_certs
+      vars:
+        daos_certs_store_type: azure_key_vault
+        daos_certs_generate: "{{ ansible_hostname == daos_server_first_host_name }}"
+        daos_certs_store_push_enabled: "{{ ansible_hostname == daos_server_first_host_name }}"
+        daos_certs_store_pull_enabled: true

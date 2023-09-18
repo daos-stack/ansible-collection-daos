@@ -18,6 +18,7 @@ daos_do_configuration: false
 daos_do_cert_gen: false
 daos_do_storage_format: false
 daos_do_storage_management: false
+daos_do_start_services: false
 
 # Required to be set in extra-vars, playbook or inventory
 # The term "roles" is overloaded here. In this context roles means "what is the

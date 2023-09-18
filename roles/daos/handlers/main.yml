@@ -7,7 +7,9 @@
   ansible.builtin.service:
     name: daos_server
     state: restarted
-  when: daos_role_server in daos_roles
+  when:
+    - daos_role_server in daos_roles
+    - daos_do_start_services
   notify: Restart daos_agent service
   tags: all
 
@@ -15,5 +17,7 @@
   ansible.builtin.service:
     name: daos_agent
     state: restarted
-  when: daos_role_client in daos_roles
+  when:
+    - daos_role_client in daos_roles
+    - daos_do_start_services
   tags: all
