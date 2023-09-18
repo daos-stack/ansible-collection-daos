@@ -12,7 +12,6 @@
   ansible.builtin.import_tasks: azure_key_vault.yml
   when:
     - daos_certs_store_type | lower == "azure_key_vault"
-    - daos_certs_generate
   tags:
     - daos_certs
 
