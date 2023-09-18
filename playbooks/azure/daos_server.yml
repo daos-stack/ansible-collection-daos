@@ -124,7 +124,7 @@
         daos_do_cert_gen: false
         daos_do_storage_format: "{{ ansible_hostname == daos_server_first_host_name }}"
         daos_do_storage_management: "{{ ansible_hostname == daos_server_first_host_name }}"
-        daos_pools: []
+        daos_pools:
           - label: pool1
             size: '100%'
             user: root
