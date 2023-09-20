@@ -102,7 +102,7 @@ daos_port: 10001
 # Access point and host list for /etc/daos/daos_*.yml configuration files
 # ------------------------------------------------------------------------------
 daos_access_points: []
-daos_host_list: []
+daos_server_host_list: []
 
 # ------------------------------------------------------------------------------
 # transport_config: section in all daos_*.yml configuration files

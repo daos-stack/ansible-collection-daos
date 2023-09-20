@@ -26,9 +26,9 @@ port: {{ daos_port }}
 
 # Hostlist, a comma separated list of addresses (hostnames or IPv4 addresses).
 # default: ['localhost']
-{% if daos_host_list %}
+{% if daos_server_host_list %}
 hostlist:
-{% for host in daos_host_list %}
+{% for host in daos_server_host_list %}
   - {{ host }}
 {% endfor %}
 {% else %}
