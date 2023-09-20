@@ -1,0 +1,32 @@
+---
+# defaults file for daos_storage
+
+# List of all DAOS servers
+daos_storage_server_host_list: []
+
+# Format the storage if it is needed.
+daos_storage_do_format: false
+
+# Format the storage if it is needed.
+daos_storage_do_management: false
+
+# List of DAOS pools to create
+# Note that if the pool already exists any changes to this list
+# will not change the pool. This is only used to create pools.
+daos_pools: []
+  # - label: pool1
+  #   size: 2TB
+  #   tier_ratio: 3
+  #   user: root
+  #   group: ""
+  #   acls:
+  #     - "A::EVERYONE@:rcta"
+  #   properties: []
+  #   containers:
+  #     - label: ""
+  #       type: ""
+  #       user: ""
+  #       group: ""
+  #       acls: []
+  #       properties: []
+  #       user_attributes: []

@@ -1,0 +1,19 @@
+---
+# assert tasks file for daos_storage role
+
+# DELETE:
+# - name: assert | Test if daos_storage_server_first_host_name is set
+#   ansible.builtin.assert:
+#     that:
+#       - daos_storage_server_first_host_name is defined
+#       - daos_storage_server_first_host_name | length > 0
+#     quiet: yes
+#     fail_msg: "'daos_storage_server_first_host_name' must not be empty"
+
+- name: assert | Test if daos_storage_server_host_list is set correctly
+  ansible.builtin.assert:
+    that:
+      - daos_storage_server_host_list is defined
+      - daos_storage_server_host_list | length > 0
+    quiet: yes
+    fail_msg: "'daos_storage_server_host_list' must not be empty"

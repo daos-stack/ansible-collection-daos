@@ -1,0 +1,12 @@
+---
+# main tasks file for daos_storage role
+
+- name: main | Import assert tasks
+  ansible.builtin.import_tasks: assert.yml
+  tags:
+    - daos_storage
+
+- name: main | Import storage tasks
+  ansible.builtin.import_tasks: storage.yml
+  tags:
+    - daos_storage

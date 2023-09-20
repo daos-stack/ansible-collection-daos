@@ -1,0 +1,91 @@
+---
+# storage management tasks for daos_storage role
+
+# Flush handlers here because we need all services to be started before continuing
+- name: storage | Flush handlers
+  ansible.builtin.meta: flush_handlers
+
+- name: storage | Ensure that the daos_server service is started
+  ansible.builtin.service:
+    name: daos_server
+    state: started
+  register: daos_storage_daos_server_service_state
+
+- name: storage | Check daos_server service started
+  assert:
+    that:
+      - daos_storage_daos_server_service_state is success
+    fail_msg: "Failed to start daos_server service!"
+
+- name: storage | Wait for daos port
+  ansible.builtin.wait_for:
+    port: "{{ daos_port | default('10001') }}"
+    state: started
+    delay: 5
+    sleep: 2
+    timeout: 300
+  become: false
+  changed_when: false
+
+# FIX: This is very fragile!
+#      https://daosio.atlassian.net/browse/DAOS-12293
+- name: storage | Determine if storage needs to be formatted
+  ansible.builtin.shell: |
+    set -o pipefail
+    dmg system query -v -j 2>/dev/null | jq -r '.error'
+  changed_when: false
+  register: daos_format_needed
+  failed_when: (daos_format_needed.rc == 1) and
+    ("system is uninitialized (storage format required?)" not in daos_format_needed.stdout)
+
+- name: storage | Show output from dmg system query command
+  ansible.builtin.debug:
+    var: daos_format_needed
+
+- name: storage | Create comma separated host list
+  set_fact:
+    daos_storage_server_hostlist_csv: "{{ daos_storage_server_host_list | map('regex_replace', '^(.*)$', '\"\\1\"') | join(', ') }}"
+
+
+- name: storage | Format storage
+  # noqa no-changed-when
+  ansible.builtin.shell: |
+    dmg storage format --host-list={{ daos_storage_server_hostlist_csv }} &&
+    dmg system query -v
+  when:
+    - daos_storage_do_format
+    - ("system is uninitialized (storage format required?)" in daos_format_needed.stdout)
+
+# After running 'dmg storage format' running 'dmg system query -v' will block until
+# the system is initialized. Do not continue until all of the servers have joined.
+# - name: storage | Wait for system to initialize
+#   # no command-instead-of-shell
+#   ansible.builtin.shell: |
+#     set -o pipefail
+#     dmg system query -o /home/daos_admin/daos/daos_control.yml -j | jq -r '.response.members[]|select(.state=="joined")|.fault_domain'
+#   register: daos_joined_servers
+#   until: daos_joined_servers.stdout_lines | length == groups['daos_servers'] | length
+#   delay: 5
+#   retries: 10
+#   changed_when: false
+#   when: inventory_hostname == groups['daos_admins'][0]
+
+# # NOTE: Make sure that the daos_pools variable is defined in the
+# #       group_vars/daos_admin/daos or group_vars/all/daos file!
+# #       If defined elsewhere, this task won't run.
+# - name: storage | Create pools
+#   ansible.builtin.shell: |
+#     set -o pipefail
+#     if [[ ! $(dmg pool list -j | jq -r '.response.pools[] | select(.label=="{{ pool.label }}") | .label') == "{{ pool.label }}" ]]; then
+#       dmg pool create -z {{ pool.size }} -u {{ pool.user }} "{{ pool.label }}"
+#       dmg pool set-prop "{{ pool.label }}" --name=reclaim --value=disabled
+#       {% for acl in pool.acls %}
+#         dmg pool update-acl -e "{{ acl }}" {{ pool.label }}
+#       {% endfor %}
+#     fi
+#   register: daos_created_pools
+#   changed_when: '"Pool created" in daos_created_pools.stdout'
+#   loop: "{{ daos_pools }}"
+#   loop_control:
+#     loop_var: pool
+#   when: inventory_hostname == groups['daos_admins'][0]
