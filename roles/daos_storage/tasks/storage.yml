@@ -58,34 +58,30 @@
 
 # After running 'dmg storage format' running 'dmg system query -v' will block until
 # the system is initialized. Do not continue until all of the servers have joined.
-# - name: storage | Wait for system to initialize
-#   # no command-instead-of-shell
-#   ansible.builtin.shell: |
-#     set -o pipefail
-#     dmg system query -o /home/daos_admin/daos/daos_control.yml -j | jq -r '.response.members[]|select(.state=="joined")|.fault_domain'
-#   register: daos_joined_servers
-#   until: daos_joined_servers.stdout_lines | length == groups['daos_servers'] | length
-#   delay: 5
-#   retries: 10
-#   changed_when: false
-#   when: inventory_hostname == groups['daos_admins'][0]
+- name: storage | Wait for system to initialize
+  # no command-instead-of-shell
+  ansible.builtin.shell: |
+    set -o pipefail
+    dmg system query -j | jq -r '.response.members[]|select(.state=="joined")|.fault_domain'
+  register: daos_joined_servers
+  until: daos_joined_servers.stdout_lines | length == daos_storage_server_host_list | length
+  delay: 5
+  retries: 30
+  changed_when: false
 
-# # NOTE: Make sure that the daos_pools variable is defined in the
-# #       group_vars/daos_admin/daos or group_vars/all/daos file!
-# #       If defined elsewhere, this task won't run.
-# - name: storage | Create pools
-#   ansible.builtin.shell: |
-#     set -o pipefail
-#     if [[ ! $(dmg pool list -j | jq -r '.response.pools[] | select(.label=="{{ pool.label }}") | .label') == "{{ pool.label }}" ]]; then
-#       dmg pool create -z {{ pool.size }} -u {{ pool.user }} "{{ pool.label }}"
-#       dmg pool set-prop "{{ pool.label }}" --name=reclaim --value=disabled
-#       {% for acl in pool.acls %}
-#         dmg pool update-acl -e "{{ acl }}" {{ pool.label }}
-#       {% endfor %}
-#     fi
-#   register: daos_created_pools
-#   changed_when: '"Pool created" in daos_created_pools.stdout'
-#   loop: "{{ daos_pools }}"
-#   loop_control:
-#     loop_var: pool
-#   when: inventory_hostname == groups['daos_admins'][0]
+- name: storage | Create pools
+  ansible.builtin.shell: |
+    set -o pipefail
+    if [[ ! $(dmg pool list -j | jq -r '.response.pools[] | select(.label=="{{ pool.label }}") | .label') == "{{ pool.label }}" ]]; then
+      dmg pool create -z {{ pool.size }} -u {{ pool.user }} "{{ pool.label }}"
+      dmg pool set-prop "{{ pool.label }}" --name=reclaim --value=disabled
+      {% for acl in pool.acls %}
+        dmg pool update-acl -e "{{ acl }}" {{ pool.label }}
+      {% endfor %}
+    fi
+  register: daos_created_pools
+  changed_when: '"Pool created" in daos_created_pools.stdout'
+  loop: "{{ daos_pools }}"
+  loop_control:
+    loop_var: pool
+  when: daos_storage_do_management
