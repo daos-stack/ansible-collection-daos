@@ -1,7 +1,20 @@
 ---
 # azure key vault tasks file for daos_certs role
 
-- name: Convert cert files to base64
+- name: azure_key_vault | DEBUG daos_certs_generate
+  debug:
+    var: daos_certs_generate
+
+- name: azure_key_vault | DEBUG daos_certs_store_push_enabled
+  debug:
+    var: daos_certs_store_push_enabled
+
+- name: azure_key_vault | DEBUG daos_certs_store_pull_enabled
+  debug:
+    var: daos_certs_store_pull_enabled
+
+
+- name: azure_key_vault | Convert cert files to base64
   ansible.builtin.shell: base64 "{{ item }}" > "{{ item }}.base64"
   args:
     chdir: "{{ daos_certs_ca_dir }}/certs"
@@ -18,7 +31,7 @@
     - daos_certs_generate
     - daos_certs_store_push_enabled
 
-- name: Add certs and keys as secrets in Azure Key Vault
+- name: azure_key_vault | Add certs and keys as secrets in Azure Key Vault
   azure.azcollection.azure_rm_keyvaultsecret:
     secret_name: "{{ daos_certs_cert.secret_name }}"
     secret_value: "{{ lookup('file', daos_certs_cert.base64_file) }}"
@@ -44,7 +57,7 @@
     - daos_certs_generate
     - daos_certs_store_push_enabled
 
-- name: Create /etc/daos/certs/clients dir
+- name: azure_key_vault | Create /etc/daos/certs/clients dir
   ansible.builtin.file:
     path: /etc/daos/certs/clients
     state: directory
@@ -53,7 +66,7 @@
     group: root
     mode: '0700'
 
-- name: Retrieve secrets from Azure Key Vault
+- name: azure_key_vault | Retrieve secrets from Azure Key Vault
   azure.azcollection.azure_rm_keyvaultsecret_info:
     name: "{{ cert.secret_name }}"
     vault_uri: "{{ daos_certs_az_vault_uri }}"
@@ -75,7 +88,7 @@
   when:
     - daos_certs_store_pull_enabled
 
-- name: Write decoded secret to file
+- name: azure_key_vault | Write decoded secret to file
   ansible.builtin.copy:
     content: "{{ daos_certs_cert.secrets[0]['secret'] | b64decode }}"
     dest: "{{ daos_certs_cert.cert.output_file }}"

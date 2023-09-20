@@ -12,29 +12,29 @@
 # daos_agent users exist and set the ownership of certs files accordingly.
 # If the service files don't exist then and the daos_server and
 # daos_agent users don't exist, set the ownership of certs files to root.
-- name: Stat daos_agent.service file
+- name: cert_permissions | Stat daos_agent.service file
   ansible.builtin.stat:
     path: "{{ daos_certs_daos_agent_service_file }}"
   register: daos_certs_agent_service_file
 
-- name: Set daos_agent user from daos_agent.service file
+- name: cert_permissions | Set daos_agent user from daos_agent.service file
   block:
-    - name: Read content from daos_agent.service file
+    - name: cert_permissions | Read content from daos_agent.service file
       shell: "grep '^User=' {{ daos_certs_daos_agent_service_file }} | awk -F'=' '{print $2}'"
       register: daos_certs_agent_service_file_user_grep
 
-    - name: Check for existence of daos_agent.service file user
+    - name: cert_permissions | Check for existence of daos_agent.service file user
       command: id -u "{{ daos_certs_agent_service_file_user_grep.stdout }}"
       register: daos_certs_service_file_user_check
       failed_when: false
       changed_when: false
 
-    - name: Set daos_certs_daos_agent_user fact to daos_agent.service file user
+    - name: cert_permissions | Set daos_certs_daos_agent_user fact to daos_agent.service file user
       set_fact:
         daos_certs_daos_agent_user: "{{ daos_certs_agent_service_file_user_grep.stdout }}"
       when: daos_certs_service_file_user_check.rc == 0
 
-    - name: Set daos_certs_daos_agent_user to root
+    - name: cert_permissions | Set daos_certs_daos_agent_user to root
       set_fact:
         daos_certs_daos_agent_user: root
       when: daos_certs_service_file_user_check.rc == 1
@@ -43,27 +43,27 @@
     - daos_certs_agent_service_file_stat.stat is defined
     - daos_certs_agent_service_file_stat.stat.exists
 
-- name: Set daos_agent user when daos_agent.service file doesn't exist
+- name: cert_permissions | Set daos_agent user when daos_agent.service file doesn't exist
   block:
-    - name: Check for existence of daos_agent user
+    - name: cert_permissions | Check for existence of daos_agent user
       command: id -u daos_agent
       register: daos_certs_daos_agent_user_check
       failed_when: false
       changed_when: false
 
-    - name: Set daos_certs_daos_agent_user fact to daos_agent
+    - name: cert_permissions | Set daos_certs_daos_agent_user fact to daos_agent
       set_fact:
         daos_certs_daos_agent_user: "daos_agent"
       when: daos_certs_daos_agent_user_check.rc == 0
 
-    - name: Set daos_certs_daos_agent_user to root
+    - name: cert_permissions | Set daos_certs_daos_agent_user to root
       set_fact:
         daos_certs_daos_agent_user: root
       when: daos_certs_daos_agent_user_check.rc == 1
   when:
     - daos_certs_agent_service_file_stat.stat is not defined or not daos_certs_agent_service_file_stat.stat.exists
 
-- name: Check if cert dirs and files exist
+- name: cert_permissions | Check if cert dirs and files exist
   ansible.builtin.stat:
     path: "{{ daos_certs_cert_path.path }}"
   register: daos_certs_paths
@@ -81,7 +81,7 @@
   loop_control:
     loop_var: daos_certs_cert_path
 
-- name: Set permissions on cert dirs and files
+- name: cert_permissions | Set permissions on cert dirs and files
   ansible.builtin.file:
     path: "{{ item.daos_certs_cert_path.path }}"
     owner: "{{ item.daos_certs_cert_path.owner | default('root') }}"

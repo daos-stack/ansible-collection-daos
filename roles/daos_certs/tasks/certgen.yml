@@ -1,19 +1,19 @@
 ---
 # certgen tasks file for daos_certs
 
-- name: daos_certs | Copy certgen files
+- name: certgen | Copy certgen files
   ansible.builtin.copy:
     src: daos_certgen
     dest: /tmp
     mode: preserve
 
-- name: daos_certs | Create daosCA dir
+- name: certgen | Create daosCA dir
   ansible.builtin.file:
     path: "{{ daos_certs_ca_dir | dirname }}"
     state: directory
     mode: '0755'
 
-- name: daos_certs | Run script to generate certs
+- name: certgen | Run script to generate certs
   ansible.builtin.shell: "/tmp/daos_certgen/gen_certificates.sh {{ daos_certs_ca_dir | dirname }}"
   args:
     creates: "{{ daos_certs_ca_dir }}"

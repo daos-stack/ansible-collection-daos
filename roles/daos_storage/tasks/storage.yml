@@ -53,7 +53,7 @@
   when:
     - daos_storage_do_format
     - ("system is uninitialized (storage format required?)" in daos_format_needed.stdout)
-    - ansible_connection == local
+    - ansible_connection == "local"
 
 - name: storage | Format storage (remote)
   # noqa no-changed-when
@@ -62,7 +62,7 @@
   when:
     - daos_storage_do_format
     - ("system is uninitialized (storage format required?)" in daos_format_needed.stdout)
-    - ansible_connection != local
+    - ansible_connection != "local"
 
 - name: storage | Wait for storage system to be initialized
   # noqa no-changed-when
