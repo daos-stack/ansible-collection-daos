@@ -46,15 +46,28 @@
   set_fact:
     daos_storage_server_hostlist_csv: "{{ daos_storage_server_host_list | map('regex_replace', '^(.*)$', '\"\\1\"') | join(', ') }}"
 
-
-- name: storage | Format storage
+- name: storage | Format storage (local)
   # noqa no-changed-when
   ansible.builtin.shell: |
-    dmg storage format --host-list={{ daos_storage_server_hostlist_csv }} &&
-    dmg system query -v
+    dmg storage format --host-list='127.0.0.1'
   when:
     - daos_storage_do_format
     - ("system is uninitialized (storage format required?)" in daos_format_needed.stdout)
+    - ansible_connection == local
+
+- name: storage | Format storage (remote)
+  # noqa no-changed-when
+  ansible.builtin.shell: |
+    dmg storage format --host-list={{ daos_storage_server_hostlist_csv }}
+  when:
+    - daos_storage_do_format
+    - ("system is uninitialized (storage format required?)" in daos_format_needed.stdout)
+    - ansible_connection != local
+
+- name: storage | Wait for storage system to be initialized
+  # noqa no-changed-when
+  ansible.builtin.shell: dmg system query -v
+  when: daos_storage_do_management
 
 # After running 'dmg storage format' running 'dmg system query -v' will block until
 # the system is initialized. Do not continue until all of the servers have joined.
@@ -68,6 +81,7 @@
   delay: 5
   retries: 30
   changed_when: false
+  when: daos_storage_do_management
 
 - name: storage | Create pools
   ansible.builtin.shell: |

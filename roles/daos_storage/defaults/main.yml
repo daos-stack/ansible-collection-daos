@@ -5,7 +5,7 @@
 daos_storage_server_host_list: []
 
 # Format the storage if it is needed.
-daos_storage_do_format: false
+daos_storage_do_format: true
 
 # Format the storage if it is needed.
 daos_storage_do_management: false
