@@ -39,3 +39,26 @@ daos_certs_az_vault_uri: ""  # https://daos-kv.vault.azure.net/
 
 daos_certs_daos_server_service_file: /usr/lib/systemd/system/daos_server.service
 daos_certs_daos_agent_service_file: /usr/lib/systemd/system/daos_agent.service
+
+daos_certs_certs:
+  - file_name: "daosCA.crt"
+    file_path: "/etc/daos/certs/daosCA.crt"
+    kv_secret_name: "daosca-cert"
+  - file_name: "admin.crt"
+    file_path: "/etc/daos/certs/admin.crt"
+    kv_secret_name: "admin-cert"
+  - file_name: "admin.key"
+    file_path: "/etc/daos/certs/admin.key"
+    kv_secret_name: "admin-key"
+  - file_name: "agent.crt"
+    file_path: "/etc/daos/certs/agent.crt"
+    kv_secret_name: "agent-cert"
+  - file_name: "agent.key"
+    file_path: "/etc/daos/certs/agent.key"
+    kv_secret_name: "agent-key"
+  - file_name: "server.crt"
+    file_path: "/etc/daos/certs/server.crt"
+    kv_secret_name: "server-cert"
+  - file_name: "server.key"
+    file_path: "/etc/daos/certs/server.key"
+    kv_secret_name: "server-key"

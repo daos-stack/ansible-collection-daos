@@ -80,38 +80,39 @@
       run_once: true
       changed_when: false
 
-    - name: Import daos role
-      import_role:
-        name: daos_stack.daos.daos
-      vars:
-        daos_roles:
-          - admin
-          - server
-        daos_deploy_certs: false
-        daos_do_install: true
-        daos_do_configuration: true
-        daos_do_cert_gen: false
-        daos_do_storage_format: false
-        daos_do_storage_management: false
-        daos_server_user: root
-        daos_transport_config_allow_insecure: false
-        daos_server_engines:
-          - targets: 2
-            nr_xs_helpers: 4
-            bypass_health_chk: "true"
-            fabric_iface: "{{ ansible_default_ipv4.interface }}"
-            fabric_iface_port: 31316
-            log_mask: ERR
-            log_file: "{{ daos_server_log_dir }}/daos_engine.0.log"
-            env_vars:
-              - "FI_OFI_RXM_DEF_TCP_WAIT_OBJ=pollfd"
-              - "DTX_AGG_THD_CNT=16777216"
-              - "DTX_AGG_THD_AGE=700"
-            storage:
-              - scm_mount: /var/daos/ram
-                class: ram
-              - class: nvme
-                bdev_list: "{{ daos_server_bdev_list | to_json }}"
+    # - name: Import daos role
+    #   import_role:
+    #     name: daos_stack.daos.daos
+    #   vars:
+    #     daos_roles:
+    #       - admin
+    #       - server
+    #     daos_deploy_certs: false
+    #     daos_do_install: true
+    #     daos_do_configuration: true
+    #     daos_do_cert_gen: false
+    #     daos_do_storage_format: false
+    #     daos_do_storage_management: false
+    #     daos_do_start_services: false
+    #     daos_server_user: root
+    #     daos_transport_config_allow_insecure: false
+    #     daos_server_engines:
+    #       - targets: 2
+    #         nr_xs_helpers: 4
+    #         bypass_health_chk: "true"
+    #         fabric_iface: "{{ ansible_default_ipv4.interface }}"
+    #         fabric_iface_port: 31316
+    #         log_mask: ERR
+    #         log_file: "{{ daos_server_log_dir }}/daos_engine.0.log"
+    #         env_vars:
+    #           - "FI_OFI_RXM_DEF_TCP_WAIT_OBJ=pollfd"
+    #           - "DTX_AGG_THD_CNT=16777216"
+    #           - "DTX_AGG_THD_AGE=700"
+    #         storage:
+    #           - scm_mount: /var/daos/ram
+    #             class: ram
+    #           - class: nvme
+    #             bdev_list: "{{ daos_server_bdev_list | to_json }}"
 
     - name: Import daos_certs role
       import_role:
@@ -122,11 +123,11 @@
         daos_certs_store_push_enabled: "{{ ansible_hostname == daos_server_first_host_name }}"
         daos_certs_store_pull_enabled: true
 
-    - name: Restart daos_server service
-      ansible.builtin.service:
-        name: daos_server
-        state: restarted
-      when: daos_certs_path_permissions.results | selectattr('changed','equalto',true) | list | count > 0
+    # - name: Ensure daos_server service is started
+    #   ansible.builtin.service:
+    #     name: daos_server
+    #     state: started
+    #   #when: daos_certs_path_permissions.results | selectattr('changed','equalto',true) | list | count > 0
 
     - name: Import daos_storage role
       import_role:

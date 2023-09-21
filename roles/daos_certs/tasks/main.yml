@@ -15,7 +15,7 @@
   tags:
     - daos_certs
 
-- name: main | Import cert permissions tasks
-  ansible.builtin.import_tasks: cert_permissions.yml
-  tags:
-    - daos_certs
+# - name: main | Import cert permissions tasks
+#   ansible.builtin.import_tasks: cert_permissions.yml
+#   tags:
+#     - daos_certs

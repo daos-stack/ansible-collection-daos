@@ -46,32 +46,36 @@
   set_fact:
     daos_storage_server_hostlist_csv: "{{ daos_storage_server_host_list | map('regex_replace', '^(.*)$', '\"\\1\"') | join(', ') }}"
 
-- name: storage | Format storage (local)
-  # noqa no-changed-when
-  ansible.builtin.shell: |
-    dmg storage format --host-list='127.0.0.1'
-  when:
-    - daos_storage_do_format
-    - ("system is uninitialized (storage format required?)" in daos_format_needed.stdout)
-    - ansible_connection == "local"
+# - name: storage | Format storage (local)
+#   # noqa no-changed-when
+#   ansible.builtin.shell: |
+#     dmg storage format --host-list='127.0.0.1'
+#   when:
+#     - daos_storage_do_format
+#     - ("system is uninitialized (storage format required?)" in daos_format_needed.stdout)
+#     - ansible_connection == "local"
+
+- name: Pause for 10 seconds
+  ansible.builtin.pause:
+    seconds: 10
 
 - name: storage | Format storage (remote)
-  # noqa no-changed-when
+  # noqa no-changed-when --host-list={{ daos_storage_server_hostlist_csv }}
   ansible.builtin.shell: |
-    dmg storage format --host-list={{ daos_storage_server_hostlist_csv }}
+    dmg storage format && dmg system query -v
   when:
     - daos_storage_do_format
     - ("system is uninitialized (storage format required?)" in daos_format_needed.stdout)
-    - ansible_connection != "local"
+    #- ansible_connection != "local"
 
-- name: storage | Wait for storage system to be initialized
-  # noqa no-changed-when
-  ansible.builtin.shell: dmg system query -v
-  when: daos_storage_do_management
+# - name: storage | Wait for storage system to be initialized
+#   # noqa no-changed-when
+#   ansible.builtin.shell: dmg system query -v
+#   #when: daos_storage_do_management
 
 # After running 'dmg storage format' running 'dmg system query -v' will block until
 # the system is initialized. Do not continue until all of the servers have joined.
-- name: storage | Wait for system to initialize
+- name: storage | Wait for all systems to join
   # no command-instead-of-shell
   ansible.builtin.shell: |
     set -o pipefail
