@@ -73,6 +73,14 @@
 #   ansible.builtin.shell: dmg system query -v
 #   #when: daos_storage_do_management
 
+- name: DEBUG daos_storage_server_host_list
+  debug:
+    var: daos_storage_server_host_list
+
+- name: DEBUG daos_storage_server_host_list | length
+  debug:
+    msg: "{{ daos_storage_server_host_list | length }}"
+
 # After running 'dmg storage format' running 'dmg system query -v' will block until
 # the system is initialized. Do not continue until all of the servers have joined.
 - name: storage | Wait for all systems to join

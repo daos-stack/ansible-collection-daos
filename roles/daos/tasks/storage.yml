@@ -11,9 +11,9 @@
 
 - name: Ensure that the daos_server service is started
   ansible.builtin.service:
-    name: daos_server
+    name: "daos_server"
     state: started
-  when: daos_role_server in daos_roles
+  #when: daos_role_server in daos_roles
 
 - name: Wait for daos port
   ansible.builtin.wait_for:
