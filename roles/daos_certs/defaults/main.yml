@@ -20,8 +20,7 @@ daos_certs_generate: false
 # Valid values are:
 #    none
 #    azure_key_vault
-#    gcp_secret_manager
-#    ibm_secrets_manager
+# TODO: add support for gcp, aws, ibm
 daos_certs_store_type: "none"
 
 # You must set this to true to push certs to centralized store
@@ -34,9 +33,14 @@ daos_certs_store_pull_enabled: false
 # permissions on existing certificate and key files if they exist.
 
 # Azure key vault settings
-daos_certs_az_vault_name: daos
-daos_certs_az_vault_uri: ""  # https://daos-kv.vault.azure.net/
+daos_server_az_rg_name: ""     # Must be provided by playbook or inventory
+daos_certs_az_vault_name: ""   # Must be provided by playbook or inventory
+daos_certs_az_vault_uri: "https://{{ daos_certs_az_vault_name }}.vault.azure.net"  # https://daos-kv.vault.azure.net/
+daos_server_az_vmss_max_retries: 30
+daos_server_az_vmss_polling_interval: 10
 
+# Systemd service files are used to look up the user configured to run the
+# services so that those users are granted the proper permissions on cert files.
 daos_certs_daos_server_service_file: /usr/lib/systemd/system/daos_server.service
 daos_certs_daos_agent_service_file: /usr/lib/systemd/system/daos_agent.service
 

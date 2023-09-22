@@ -1,6 +1,13 @@
 ---
 # azure key vault tasks file for daos_certs role
 
+- name: Verify daos_certs_az_vault_name has been set
+  ansible.builtin.assert:
+    that:
+      - daos_certs_az_vault_name is defined
+      - daos_certs_az_vault_name | length > 0
+    fail_msg: The daos_certs_az_vault_name variable must contain a value.
+
 - name: azure_key_vault | DEBUG daos_certs_generate
   debug:
     var: daos_certs_generate

@@ -1,75 +1,82 @@
 ---
-- name: Install and configure DAOS server
+- name: daos_server | Install and configure DAOS server
   hosts: localhost
   gather_facts: true
   connection: local
 
   vars:
-    daos_server_az_rg_name: "{{ lookup('env', 'DAOS_AZ_CORE_RG_NAME') | default('daos-rg') }}"
-    daos_server_az_vmss_name: "{{ lookup('env', 'DAOS_AZ_ARM_SERVER_VMSS_NAME') | default('daos-server-vmss') }}"
-    daos_server_az_vmss_max_retries: 30 # maximum number of retries (30 retries * 10 seconds = 5 minutes maximum wait time)
-    daos_server_az_vmss_polling_interval: 10  # time in seconds between checks
-    daos_certs_az_vault_name: "{{ lookup('env', 'DAOS_AZ_ARM_KEY_VAULT_NAME') | default('daos-kv') }}"
-    daos_certs_az_vault_uri: "https://{{ daos_certs_az_vault_name }}.vault.azure.net"
+    daos_server_az_rg_name: "{{ daos_server_az_rg_name | default(lookup('env', 'DAOS_AZ_CORE_RG_NAME')) | default('daos-rg') }}"
+    daos_server_az_vmss_name: "{{ daos_server_az_vmss_name | default(lookup('env', 'DAOS_AZ_ARM_SERVER_VMSS_NAME')) | default('daos-server-vmss') }}"
+    daos_certs_az_vault_name: "{{ daos_certs_az_vault_name | default(lookup('env', 'DAOS_AZ_ARM_KEY_VAULT_NAME')) | default('demnfr4cxad3k-daos-kv') }}"
 
   tasks:
-    - name: DEBUG daos_server_az_rg_name
+    - name: daos_server | DEBUG daos_server_az_rg_name
       debug:
         var: daos_server_az_rg_name
 
-    - name: DEBUG daos_server_az_vmss_name
+    - name: daos_server | DEBUG daos_server_az_vmss_name
       debug:
         var: daos_server_az_vmss_name
 
-    - name: DEBUG daos_certs_az_vault_name
+    - name: daos_server | DEBUG daos_certs_az_vault_name
       debug:
         var: daos_certs_az_vault_name
 
-    - name: DEBUG daos_certs_az_vault_uri
+    - name: daos_server | DEBUG daos_certs_az_vault_uri
       debug:
         var: daos_certs_az_vault_uri
 
 
-    - name: Import selinux role
+    - name: daos_server | Import selinux role
       import_role:
         name: daos_stack.daos.selinux
 
-    - name: Import packages
+    - name: daos_server | Import packages
       import_role:
         name: daos_stack.daos.packages
 
-    - name: Import tune
+    - name: daos_server | Import tune
       import_role:
         name: daos_stack.daos.tune
 
-    - name: Get VMSS info
+    - name: daos_server | Get VMSS daos_server_vmss_info_debug
+      azure.azcollection.azure_rm_virtualmachinescaleset_info:
+        resource_group: "{{ daos_server_az_rg_name }}"
+        name: "{{ daos_server_az_vmss_name }}"
+      register: daos_server_vmss_info_debug
+
+    - name: daos_server | DEBUG daos_server_vmss_info_debug
+      debug:
+        var: daos_server_vmss_info_debug
+
+    - name: daos_server | Wait until VMSS provisioning state is Succeeded
       azure.azcollection.azure_rm_virtualmachinescaleset_info:
         resource_group: "{{ daos_server_az_rg_name }}"
         name: "{{ daos_server_az_vmss_name }}"
       register: daos_server_vmss_info
       retries: "{{ daos_server_az_vmss_max_retries }}"
       delay: "{{ daos_server_az_vmss_polling_interval }}"
-      until: daos_server_vmss_info.vmss[0].properties.provisioningState == "Succeeded"
+      until: daos_server_vmss_info.vmss[0].provisioning_state == "Succeeded"
 
-    - name: Retrieve VM instances in VMSS
+    - name: daos_server | Retrieve VM instances in VMSS
       azure.azcollection.azure_rm_virtualmachinescalesetinstance_info:
         resource_group: "{{ daos_server_az_rg_name }}"
         vmss_name: "{{ daos_server_az_vmss_name }}"
       register: daos_server_vmss_instance_info
 
-    - name: Get bdev addresses
+    - name: daos_server | Get bdev addresses
       ansible.builtin.shell: "lspci | grep 'Non-Volatile memory controller' | awk '{print $1}'"
       register: daos_server_lspci_output
       changed_when: false
 
-    - name: Set facts for daos role
+    - name: daos_server | Set facts for daos role
       ansible.builtin.set_fact:
         daos_server_bdev_list: '{{ daos_server_lspci_output.stdout_lines }}'
         daos_server_first_host_name: "{{ daos_server_vmss_instance_info.instances[0].computer_name }}"
         daos_server_host_list: "{{ daos_server_vmss_instance_info.instances | map(attribute='computer_name') | list }}"
         daos_access_points: "{{ daos_server_vmss_instance_info.instances | map(attribute='computer_name') | list | daos_stack.daos.daos_access_points}}"
 
-    - name: Add localhost to the inventory groups
+    - name: daos_server | Add localhost to the inventory groups
       add_host:
         name: localhost
         groups: "{{ item }}"
@@ -80,7 +87,7 @@
       run_once: true
       changed_when: false
 
-    - name: Import daos role
+    - name: daos_server | Import daos role
       import_role:
         name: daos_stack.daos.daos
       vars:
@@ -114,7 +121,7 @@
               - class: nvme
                 bdev_list: "{{ daos_server_bdev_list | to_json }}"
 
-    - name: Import daos_certs role
+    - name: daos_server | Import daos_certs role
       import_role:
         name: daos_certs
       vars:
@@ -123,13 +130,13 @@
         daos_certs_store_push_enabled: "{{ ansible_hostname == daos_server_first_host_name }}"
         daos_certs_store_pull_enabled: true
 
-    # - name: Ensure daos_server service is started
+    # - name: daos_server | Ensure daos_server service is started
     #   ansible.builtin.service:
     #     name: daos_server
     #     state: started
     #   #when: daos_certs_path_permissions.results | selectattr('changed','equalto',true) | list | count > 0
 
-    - name: Import daos_storage role
+    - name: daos_server | Import daos_storage role
       import_role:
         name: daos_stack.daos.daos_storage
       vars:
