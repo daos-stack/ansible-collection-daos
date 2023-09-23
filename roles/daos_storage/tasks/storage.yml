@@ -55,10 +55,6 @@
 #     - ("system is uninitialized (storage format required?)" in daos_format_needed.stdout)
 #     - ansible_connection == "local"
 
-- name: Pause for 10 seconds
-  ansible.builtin.pause:
-    seconds: 10
-
 - name: storage | Format storage (remote)
   # noqa no-changed-when --host-list={{ daos_storage_server_hostlist_csv }}
   ansible.builtin.shell: |
@@ -99,12 +95,17 @@
   # no command-instead-of-shell
   ansible.builtin.shell: |
     set -o pipefail
-    dmg system query -v -j | jq -r '.response.members[] | select(.state == "joined").fault_domain' | sed 's|/||g'
-  register: daos_join_state
-  until: daos_join_state.stdout_lines | length == daos_storage_server_host_list | length
+    dmg system query -v -j | jq -r '.response.members[] | select(.state == "joined").fault_domain' | sed 's|/||g' | wc -l
+  register: daos_server_join_count
+  until: daos_server_join_count.stdout_lines | int == daos_storage_server_host_list | length
   delay: 5
   retries: 60
   changed_when: false
+  when: daos_storage_do_management
+
+- name: Pause for 2 mins
+  ansible.builtin.pause:
+    seconds: 120
   when: daos_storage_do_management
 
 - name: storage | Create pools
