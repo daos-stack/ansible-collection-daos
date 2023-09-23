@@ -61,8 +61,8 @@
     dmg system query -v -j --rank-hosts="{{ ansible_hostname }}" | jq -r --arg hostname "/{{ ansible_hostname }}" '.response.members[] | select(.fault_domain == $hostname).state'
   register: daos_join_state
   until: daos_join_state.stdout_lines | lower == "joined"
-  delay: 5
-  retries: 30
+  delay: 10
+  retries: 90
   changed_when: false
   when: daos_storage_do_format
 
