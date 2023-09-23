@@ -142,7 +142,7 @@
       vars:
         #daos_storage_server_host_list: ["localhost"]
         daos_storage_server_host_list: "{{ daos_server_vmss_instance_info.instances }}"
-        daos_storage_do_format: "{{ ansible_hostname == daos_server_first_host_name }}"
+        daos_storage_do_format: true
         daos_storage_do_management: "{{ ansible_hostname == daos_server_first_host_name }}"
         daos_pools:
           - label: pool1

@@ -32,7 +32,7 @@
 - name: storage | Determine if storage needs to be formatted
   ansible.builtin.shell: |
     set -o pipefail
-    dmg system query -v -j 2>/dev/null | jq -r '.error'
+    dmg system query -v -j --rank-hosts="{{ ansible_hostname }}" 2>/dev/null | jq -r '.error'
   changed_when: false
   register: daos_format_needed
   failed_when: (daos_format_needed.rc == 1) and
@@ -62,7 +62,7 @@
 - name: storage | Format storage (remote)
   # noqa no-changed-when --host-list={{ daos_storage_server_hostlist_csv }}
   ansible.builtin.shell: |
-    dmg storage format && dmg system query -v
+    dmg storage format -l {{ ansible_hostname }}
   when:
     - daos_storage_do_format
     - ("system is uninitialized (storage format required?)" in daos_format_needed.stdout)
@@ -82,16 +82,28 @@
     msg: "{{ daos_storage_server_host_list | length }}"
 
 # After running 'dmg storage format' running 'dmg system query -v' will block until
-# the system is initialized. Do not continue until all of the servers have joined.
-- name: storage | Wait for all systems to join
+# the system is initialized. Do not continue until the server has joined.
+- name: storage | Wait for host to join
   # no command-instead-of-shell
   ansible.builtin.shell: |
     set -o pipefail
-    dmg system query -j | jq -r '.response.members[]|select(.state=="joined")|.fault_domain'
-  register: daos_joined_servers
-  until: daos_joined_servers.stdout_lines | length == daos_storage_server_host_list | length
+    dmg system query -v -j --rank-hosts="{{ ansible_hostname }}" | jq -r --arg hostname "/"{{ ansible_hostname }}"" '.response.members[] | select(.fault_domain == $hostname).state'
+  register: daos_join_state
+  until: daos_join_state.stdout_lines | lower == "joined"
   delay: 5
   retries: 30
+  changed_when: false
+  when: daos_storage_do_format
+
+- name: storage | Get join status for all hosts
+  # no command-instead-of-shell
+  ansible.builtin.shell: |
+    set -o pipefail
+    dmg system query -v -j | jq -r '.response.members[] | select(.state == "joined").fault_domain' | sed 's|/||g'
+  register: daos_join_state
+  until: daos_join_state.stdout_lines | length == daos_storage_server_host_list | length
+  delay: 5
+  retries: 60
   changed_when: false
   when: daos_storage_do_management
 

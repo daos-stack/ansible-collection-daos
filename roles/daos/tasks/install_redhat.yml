@@ -34,3 +34,11 @@
     name: daos_server
     enabled: true
   when: '"server" in daos_roles'
+
+- name: Copy clean_daos_storage.sh script
+  ansible.builtin.copy:
+    src: clean_daos_storage.sh
+    dest: /root/clean_daos_storage.sh
+    owner: root
+    group: root
+    mode: '0750'
