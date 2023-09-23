@@ -84,7 +84,7 @@
     set -o pipefail
     dmg system query -v -j | jq -r '.response.members[] | select(.state == "joined").fault_domain' | sed 's|/||g' | wc -l
   register: daos_server_join_count
-  until: daos_server_join_count.stdout_lines | int == daos_storage_server_host_list | length | int
+  until: daos_server_join_count.stdout | int == daos_storage_server_host_list | length | int
   delay: 10
   retries: 300
   changed_when: false
