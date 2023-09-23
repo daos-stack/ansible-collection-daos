@@ -43,7 +43,7 @@
 #     var: daos_format_needed
 
 # Ignore error if storage is already formatted
-- name: storage | Format storage (remote)
+- name: storage | Format storage
   ansible.builtin.command: dmg storage format -l {{ ansible_hostname }}
   register: daos_storage_format_command
   when: daos_storage_do_format
@@ -58,7 +58,7 @@
   # no command-instead-of-shell
   ansible.builtin.shell: |
     set -o pipefail
-    dmg system query -v -j --rank-hosts="{{ ansible_hostname }}" | jq -r --arg hostname "/"{{ ansible_hostname }}"" '.response.members[] | select(.fault_domain == $hostname).state'
+    dmg system query -v -j --rank-hosts="{{ ansible_hostname }}" | jq -r --arg hostname "/{{ ansible_hostname }}" '.response.members[] | select(.fault_domain == $hostname).state'
   register: daos_join_state
   until: daos_join_state.stdout_lines | lower == "joined"
   delay: 5
