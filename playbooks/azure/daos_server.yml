@@ -7,6 +7,8 @@
   vars:
     daos_server_az_rg_name: "{{ daos_server_az_rg_name | default(lookup('env', 'DAOS_AZ_CORE_RG_NAME')) | default('daos-rg') }}"
     daos_server_az_vmss_name: "{{ daos_server_az_vmss_name | default(lookup('env', 'DAOS_AZ_ARM_SERVER_VMSS_NAME')) | default('daos-server-vmss') }}"
+    daos_server_az_vmss_max_retries: 90
+    daos_server_az_vmss_polling_interval: 10
     daos_certs_az_vault_name: "{{ daos_certs_az_vault_name | default(lookup('env', 'DAOS_AZ_ARM_KEY_VAULT_NAME')) | default('demnfr4cxad3k-daos-kv') }}"
 
   tasks:
