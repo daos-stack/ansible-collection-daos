@@ -48,7 +48,9 @@
   register: daos_storage_format_command
   when: daos_storage_do_format
   ignore_errors: true
-  changed_when: 'Format Summary:' in daos_storage_format_command.stdout
+  changed_when:
+    - daos_storage_format_command.stdout is defined
+    - "'Format Summary:' in daos_storage_format_command.stdout"
 
 # After running 'dmg storage format' running 'dmg system query -v' will block until
 # the system is initialized. Do not continue until the server has joined.
