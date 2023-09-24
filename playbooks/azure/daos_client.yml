@@ -13,8 +13,8 @@
   tasks:
     - name: daos_client | Set facts for daos role
       ansible.builtin.set_fact:
-        daos_server_host_list: "{{ daos_client_server_host_list | list }}"
-        daos_access_points: "{{ daos_client_server_host_list | list | daos_stack.daos.daos_access_points}}"
+        daos_server_host_list: "{{ daos_client_server_host_list }}"
+        daos_access_points: "{{ daos_client_server_host_list | daos_stack.daos.daos_access_points}}"
 
     # - name: daos_client | Add localhost to the inventory groups
     #   add_host:
