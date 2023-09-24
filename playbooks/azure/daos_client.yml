@@ -11,21 +11,22 @@
     daos_certs_az_vault_name: "{{ daos_certs_az_vault_name | default(lookup('env', 'DAOS_AZ_ARM_KEY_VAULT_NAME')) | default('demnfr4cxad3k-daos-kv') }}"
 
   tasks:
+
     - name: daos_client | Set facts for daos role
       ansible.builtin.set_fact:
-        daos_server_host_list: "{{ daos_client_server_host_list }}"
-        daos_access_points: "{{ daos_client_server_host_list | daos_stack.daos.daos_access_points}}"
+        daos_server_host_list: "{{ daos_client_server_host_list | list }}"
+        daos_access_points: "{{ daos_client_server_host_list | daos_stack.daos.daos_access_points }}"
 
-    # - name: daos_client | Add localhost to the inventory groups
-    #   add_host:
-    #     name: localhost
-    #     groups: "{{ item }}"
-    #   loop:
-    #     - daos_admins
-    #     - daos_clients
-    #   delegate_to: localhost
-    #   run_once: true
-    #   changed_when: false
+    - name: daos_client | Add localhost to the inventory groups
+      add_host:
+        name: localhost
+        groups: "{{ item }}"
+      loop:
+        - daos_admins
+        - daos_clients
+      delegate_to: localhost
+      run_once: true
+      changed_when: false
 
     - name: daos_client | Import daos role
       import_role:

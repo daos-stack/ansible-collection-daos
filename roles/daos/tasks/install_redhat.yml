@@ -20,6 +20,15 @@
     state: present
   loop: '{{ daos_roles }}'
 
+- name: Create daos agent log directory
+  ansible.builtin.file:
+    path: "{{ daos_agent_log_dir }}"
+    state: directory
+    owner: "{{ daos_server_user }}"
+    group: "{{ daos_server_user }}"
+    mode: '0755'
+  when: '"client" in daos_roles'
+
 - name: Create daos server log directory
   ansible.builtin.file:
     path: "{{ daos_server_log_dir }}"

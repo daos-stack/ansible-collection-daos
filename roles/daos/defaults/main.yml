@@ -119,6 +119,13 @@ daos_transport_config_agent_key: /etc/daos/certs/agent.key
 
 
 # ------------------------------------------------------------------------------
+# daos_agent.yml configuration file
+# ------------------------------------------------------------------------------
+daos_agent_log_dir: /var/daos
+daos_agent_log_file: "{{ daos_agent_log_dir }}/daos_agent.log"
+daos_agent_control_log_mask: "INFO"
+
+# ------------------------------------------------------------------------------
 # daos_server.yml configuration file
 # ------------------------------------------------------------------------------
 daos_server_provider: "ofi+tcp;ofi_rxm"

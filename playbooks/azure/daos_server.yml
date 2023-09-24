@@ -75,7 +75,7 @@
         daos_server_bdev_list: '{{ daos_server_lspci_output.stdout_lines }}'
         daos_server_first_host_name: "{{ daos_server_vmss_instance_info.instances[0].computer_name }}"
         daos_server_host_list: "{{ daos_server_vmss_instance_info.instances | map(attribute='computer_name') | list }}"
-        daos_access_points: "{{ daos_server_vmss_instance_info.instances | map(attribute='computer_name') | list | daos_stack.daos.daos_access_points}}"
+        daos_access_points: "{{ daos_server_vmss_instance_info.instances | map(attribute='computer_name') | list | daos_stack.daos.daos_access_points }}"
 
     - name: daos_server | Add localhost to the inventory groups
       add_host:
