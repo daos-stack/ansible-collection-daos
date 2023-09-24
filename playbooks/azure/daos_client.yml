@@ -1,0 +1,55 @@
+---
+- name: daos_client | Install and configure DAOS client
+  hosts: "{{ target | default('localhost') }}"
+  gather_facts: true
+
+  vars:
+    daos_client_az_rg_name: "{{ daos_client_az_rg_name | default(lookup('env', 'DAOS_AZ_CORE_RG_NAME')) | default('daos-rg') }}"
+    daos_client_server_host_list: "{{ daos_client_server_host_list | default([]) }}"
+    # daos_client_az_vmss_name: "{{ daos_client_az_vmss_name | default(lookup('env', 'DAOS_AZ_ARM_CLIENT_VMSS_NAME')) | default('daos-client-vmss') }}"
+    # daos_server_az_vmss_name: "{{ daos_server_az_vmss_name | default(lookup('env', 'DAOS_AZ_ARM_SERVER_VMSS_NAME')) | default('daos-server-vmss') }}"
+    daos_certs_az_vault_name: "{{ daos_certs_az_vault_name | default(lookup('env', 'DAOS_AZ_ARM_KEY_VAULT_NAME')) | default('demnfr4cxad3k-daos-kv') }}"
+
+  tasks:
+    - name: daos_client | Set facts for daos role
+      ansible.builtin.set_fact:
+        daos_server_host_list: "{{ daos_client_server_host_list | list }}"
+        daos_access_points: "{{ daos_client_server_host_list | list | daos_stack.daos.daos_access_points}}"
+
+    # - name: daos_client | Add localhost to the inventory groups
+    #   add_host:
+    #     name: localhost
+    #     groups: "{{ item }}"
+    #   loop:
+    #     - daos_admins
+    #     - daos_clients
+    #   delegate_to: localhost
+    #   run_once: true
+    #   changed_when: false
+
+    - name: daos_client | Import daos role
+      import_role:
+        name: daos_stack.daos.daos
+      vars:
+        daos_roles:
+          - admin
+          - client
+        daos_deploy_certs: false
+        daos_do_install: true
+        daos_do_configuration: true
+        daos_do_cert_gen: false
+        daos_do_start_services: false
+        daos_transport_config_allow_insecure: false
+
+    - name: daos_client | Import daos_certs role
+      import_role:
+        name: daos_certs
+      vars:
+        daos_certs_store_type: azure_key_vault
+        daos_certs_store_push_enabled: false
+        daos_certs_store_pull_enabled: true
+
+    - name: daos_client | Ensure daos_agent service is started
+      ansible.builtin.service:
+        name: daos_agent
+        state: started

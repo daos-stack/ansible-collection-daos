@@ -1,8 +1,7 @@
 ---
 - name: daos_server | Install and configure DAOS server
-  hosts: localhost
+  hosts: "{{ target | default('localhost') }}"
   gather_facts: true
-  connection: local
 
   vars:
     daos_server_az_rg_name: "{{ daos_server_az_rg_name | default(lookup('env', 'DAOS_AZ_CORE_RG_NAME')) | default('daos-rg') }}"
