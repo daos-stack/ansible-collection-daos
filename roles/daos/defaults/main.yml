@@ -57,7 +57,7 @@ daos_workarounds:
 # ------------------------------------------------------------------------------
 # DAOS users
 # ------------------------------------------------------------------------------
-# These users will be created when DAOS is installed.
+# These users will be created when DAOS is installed via RPMs.
 daos_server_user: daos_server
 daos_agent_user: daos_agent
 

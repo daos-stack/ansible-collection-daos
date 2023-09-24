@@ -24,8 +24,8 @@
   ansible.builtin.file:
     path: "{{ daos_agent_log_dir }}"
     state: directory
-    owner: "{{ daos_server_user }}"
-    group: "{{ daos_server_user }}"
+    owner: "{{ daos_agent_user }}"
+    group: "{{ daos_agent_user }}"
     mode: '0755'
   when: '"client" in daos_roles'
 
