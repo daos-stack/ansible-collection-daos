@@ -4,13 +4,12 @@
   gather_facts: true
 
   vars:
-    azurecli_do_login: true
-    azurecli_login_method: "uami"
-    azurecli_default_subscription: "{{ azurecli_default_subscription | default(lookup('env', 'DAOS_AZ_CORE_ACCT_NAME')) | default('daos-rg') }}"
-    azurecli_default_group: "{{ azurecli_default_group | default(lookup('env', 'DAOS_AZ_CORE_RG_NAME')) | default('daos-rg') }}"
-    daos_client_az_rg_name: "{{ daos_client_az_rg_name | default(lookup('env', 'DAOS_AZ_CORE_RG_NAME')) | default('daos-rg') }}"
-    daos_client_server_host_list: "{{ daos_client_server_host_list | default([]) }}"
-    daos_certs_az_vault_name: "{{ daos_certs_az_vault_name | default(lookup('env', 'DAOS_AZ_ARM_KEY_VAULT_NAME')) | default('demnfr4cxad3k-daos-kv') }}"
+    uamid: "{{ azurecli_username | default(lookup('env', 'DAOS_AZ_ARM_UAMID')) | default('daos-uami') }}"
+    subscription: "{{ subscription | default(lookup('env', 'DAOS_AZ_CORE_ACCT_NAME')) | default('daos-rg') }}"
+    group_name: "{{ group_name | default(lookup('env', 'DAOS_AZ_CORE_RG_NAME')) | default('daos-rg') }}"
+    location: "{{ location | default(lookup('env', 'DAOS_AZ_CORE_LOCATION_NAME')) | default('') }}"
+    vault_name: "{{ vault_name | default(lookup('env', 'DAOS_AZ_ARM_KEY_VAULT_NAME')) | default('demnfr4cxad3k-daos-kv') }}"
+    server_host_list: "{{ server_host_list | default([]) }}"
 
   tasks:
     - name: daos_client | Import selinux role
@@ -28,11 +27,13 @@
     - name: daos_client | Import azurecli role
       import_role:
         name: daos_stack.daos.azurecli
-
-    - name: daos_client | Set facts for daos role
-      ansible.builtin.set_fact:
-        daos_server_host_list: "{{ daos_client_server_host_list | list }}"
-        daos_access_points: "{{ daos_client_server_host_list | list | daos_stack.daos.daos_access_points }}"
+      vars:
+        azurecli_do_login: true
+        azurecli_login_method: "uami"
+        azurecli_username: "{{ uamid }}"
+        azurecli_default_subscription: "{{ subscription }}"
+        azurecli_default_group: "{{ group_name }}"
+        azurecli_default_location: "{{ location }}"
 
     - name: daos_client | Add localhost to the inventory groups
       add_host:
@@ -58,12 +59,15 @@
         daos_do_cert_gen: false
         daos_do_start_services: false
         daos_transport_config_allow_insecure: false
+        daos_server_host_list: "{{ server_host_list | list }}"
+        daos_access_points: "{{ server_host_list | list | daos_stack.daos.daos_access_points }}"
 
     - name: daos_client | Import daos_certs role
       import_role:
         name: daos_certs
       vars:
         daos_certs_store_type: azure_key_vault
+        daos_certs_az_vault_name: "{{ vault_name }}"
         daos_certs_store_push_enabled: false
         daos_certs_store_pull_enabled: true
 

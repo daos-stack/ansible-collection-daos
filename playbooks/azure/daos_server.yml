@@ -4,16 +4,14 @@
   gather_facts: true
 
   vars:
-    azurecli_do_login: true
-    azurecli_login_method: "uami"
-    azurecli_default_subscription: "{{ azurecli_default_subscription | default(lookup('env', 'DAOS_AZ_CORE_ACCT_NAME')) | default('daos-rg') }}"
-    azurecli_default_group: "{{ azurecli_default_group | default(lookup('env', 'DAOS_AZ_CORE_RG_NAME')) | default('daos-rg') }}"
-    azurecli_default_location: "{{ azurecli_default_location | default(lookup('env', 'DAOS_AZ_CORE_LOCATION_NAME')) | default('') }}"
-    daos_server_az_rg_name: "{{ daos_server_az_rg_name | default(lookup('env', 'DAOS_AZ_CORE_RG_NAME')) | default('daos-rg') }}"
-    daos_server_az_vmss_name: "{{ daos_server_az_vmss_name | default(lookup('env', 'DAOS_AZ_ARM_SERVER_VMSS_NAME')) | default('daos-server-vmss') }}"
-    daos_server_az_vmss_max_retries: 90
-    daos_server_az_vmss_polling_interval: 10
-    daos_certs_az_vault_name: "{{ daos_certs_az_vault_name | default(lookup('env', 'DAOS_AZ_ARM_KEY_VAULT_NAME')) | default('demnfr4cxad3k-daos-kv') }}"
+    uamid: "{{ azurecli_username | default(lookup('env', 'DAOS_AZ_ARM_UAMID')) | default('daos-uami') }}"
+    subscription: "{{ subscription | default(lookup('env', 'DAOS_AZ_CORE_ACCT_NAME')) | default('daos-rg') }}"
+    group_name: "{{ group_name | default(lookup('env', 'DAOS_AZ_CORE_RG_NAME')) | default('daos-rg') }}"
+    location: "{{ location | default(lookup('env', 'DAOS_AZ_CORE_LOCATION_NAME')) | default('') }}"
+    vmss_name: "{{ vmss_name | default(lookup('env', 'DAOS_AZ_ARM_SERVER_VMSS_NAME')) | default('daos-server-vmss') }}"
+    vmss_max_retries: 90
+    vmss_polling_interval: 10
+    vault_name: "{{ vault_name | default(lookup('env', 'DAOS_AZ_ARM_KEY_VAULT_NAME')) | default('demnfr4cxad3k-daos-kv') }}"
 
   tasks:
     - name: daos_server | Import selinux role
@@ -31,39 +29,39 @@
     - name: daos_server | Import azurecli role
       import_role:
         name: daos_stack.daos.azurecli
+      vars:
+        azurecli_do_login: true
+        azurecli_login_method: "uami"
+        azurecli_username: "{{ uamid }}"
+        azurecli_default_subscription: "{{ subscription }}"
+        azurecli_default_group: "{{ group_name }}"
+        azurecli_default_location: "{{ location }}"
 
     - name: daos_server | Get VMSS daos_server_vmss_info_debug
       azure.azcollection.azure_rm_virtualmachinescaleset_info:
-        resource_group: "{{ daos_server_az_rg_name }}"
-        name: "{{ daos_server_az_vmss_name }}"
+        resource_group: "{{ group_name }}"
+        name: "{{ vmss_name }}"
       register: daos_server_vmss_info_debug
 
     - name: daos_server | Wait until VMSS provisioning state is Succeeded
       azure.azcollection.azure_rm_virtualmachinescaleset_info:
-        resource_group: "{{ daos_server_az_rg_name }}"
-        name: "{{ daos_server_az_vmss_name }}"
+        resource_group: "{{ group_name }}"
+        name: "{{ vmss_name }}"
       register: daos_server_vmss_info
-      retries: "{{ daos_server_az_vmss_max_retries }}"
-      delay: "{{ daos_server_az_vmss_polling_interval }}"
+      retries: "{{ vmss_max_retries }}"
+      delay: "{{ vmss_polling_interval }}"
       until: daos_server_vmss_info.vmss[0].provisioning_state == "Succeeded"
 
     - name: daos_server | Retrieve VM instances in VMSS
       azure.azcollection.azure_rm_virtualmachinescalesetinstance_info:
-        resource_group: "{{ daos_server_az_rg_name }}"
-        vmss_name: "{{ daos_server_az_vmss_name }}"
+        resource_group: "{{ group_name }}"
+        vmss_name: "{{ vmss_name }}"
       register: daos_server_vmss_instance_info
 
     - name: daos_server | Get bdev addresses
       ansible.builtin.shell: "lspci | grep 'Non-Volatile memory controller' | awk '{print $1}'"
       register: daos_server_lspci_output
       changed_when: false
-
-    - name: daos_server | Set facts for daos role
-      ansible.builtin.set_fact:
-        daos_server_bdev_list: '{{ daos_server_lspci_output.stdout_lines }}'
-        daos_server_first_host_name: "{{ daos_server_vmss_instance_info.instances[0].computer_name }}"
-        daos_server_host_list: "{{ daos_server_vmss_instance_info.instances | map(attribute='computer_name') | list }}"
-        daos_access_points: "{{ daos_server_vmss_instance_info.instances | map(attribute='computer_name') | list | daos_stack.daos.daos_access_points }}"
 
     - name: daos_server | Add localhost to the inventory groups
       add_host:
@@ -92,6 +90,10 @@
         daos_do_start_services: false
         daos_server_user: root
         daos_transport_config_allow_insecure: false
+        daos_server_bdev_list: '{{ daos_server_lspci_output.stdout_lines }}'
+        daos_server_first_host_name: "{{ daos_server_vmss_instance_info.instances[0].computer_name }}"
+        daos_server_host_list: "{{ daos_server_vmss_instance_info.instances | map(attribute='computer_name') | list }}"
+        daos_access_points: "{{ daos_server_vmss_instance_info.instances | map(attribute='computer_name') | list | daos_stack.daos.daos_access_points }}"
         daos_server_engines:
           - targets: 2
             nr_xs_helpers: 4
@@ -115,21 +117,15 @@
         name: daos_certs
       vars:
         daos_certs_store_type: azure_key_vault
+        daos_certs_az_vault_name: "{{ vault_name }}"
         daos_certs_generate: "{{ ansible_hostname == daos_server_first_host_name }}"
         daos_certs_store_push_enabled: "{{ ansible_hostname == daos_server_first_host_name }}"
         daos_certs_store_pull_enabled: true
-
-    # - name: daos_server | Ensure daos_server service is started
-    #   ansible.builtin.service:
-    #     name: daos_server
-    #     state: started
-    #   #when: daos_certs_path_permissions.results | selectattr('changed','equalto',true) | list | count > 0
 
     - name: daos_server | Import daos_storage role
       import_role:
         name: daos_stack.daos.daos_storage
       vars:
-        #daos_storage_server_host_list: ["localhost"]
         daos_storage_server_host_list: "{{ daos_server_vmss_instance_info.instances }}"
         daos_storage_do_format: true
         daos_storage_do_management: "{{ ansible_hostname == daos_server_first_host_name }}"
