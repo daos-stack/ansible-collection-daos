@@ -23,11 +23,8 @@ platforms:
     capabilities:
       - SYS_ADMIN
     override_command: false
-<<<<<<< HEAD
-=======
     ansible_connection_options:
       ansible_python_interpreter: "/usr/bin/python3"
->>>>>>> 7ca3cfb (Update python interpreters for distros)
   - name: epel-almalinux9
     image: quay.io/mark_olson/almalinux9-systemd:latest
     command: /sbin/init
@@ -36,7 +33,6 @@ platforms:
       - /tmp
     volumes:
       - /sys/fs/cgroup:/sys/fs/cgroup:ro
-<<<<<<< HEAD
     privileged: true
     pre_build_image: true
     # cgroupns_mode: host
@@ -45,7 +41,6 @@ platforms:
     override_command: false
   - name: epel-fedora38
     image: quay.io/mark_olson/fedora38-systemd:latest
-=======
     privileged: True
     pre_build_image: True
     override_command: false
@@ -53,20 +48,17 @@ platforms:
       ansible_python_interpreter: "/usr/bin/python3"
   - name: epel-amazonlinux2
     image: quay.io/mark_olson/amazonlinux2-systemd:latest
->>>>>>> 7ca3cfb (Update python interpreters for distros)
     tmpfs:
       - /run
       - /tmp
     volumes:
       - /sys/fs/cgroup:/sys/fs/cgroup:ro
-<<<<<<< HEAD
     privileged: true
     pre_build_image: true
     # cgroupns_mode: host
     capabilities:
       - SYS_ADMIN
     override_command: false
-=======
     privileged: True
     pre_build_image: True
     override_command: false
@@ -81,7 +73,6 @@ platforms:
       - /sys/fs/cgroup:/sys/fs/cgroup:ro
     privileged: True
     pre_build_image: True
->>>>>>> 7ca3cfb (Update python interpreters for distros)
   - name: epel-debian11
     image: quay.io/mark_olson/debian11-systemd:latest
     tmpfs:
@@ -89,7 +80,6 @@ platforms:
       - /tmp
     volumes:
       - /sys/fs/cgroup:/sys/fs/cgroup:ro
-<<<<<<< HEAD
     privileged: true
     pre_build_image: true
     # cgroupns_mode: host
@@ -100,7 +90,6 @@ platforms:
       ansible_python_interpreter: "/usr/bin/python3"
   - name: epel-debian12
     image: quay.io/mark_olson/debian12-systemd:latest
-=======
     privileged: True
     pre_build_image: True
     override_command: false
@@ -108,13 +97,11 @@ platforms:
       ansible_python_interpreter: "/usr/local/bin/python3.11"
   - name: epel-fedora36
     image: quay.io/mark_olson/fedora36-systemd:latest
->>>>>>> 7ca3cfb (Update python interpreters for distros)
     tmpfs:
       - /run
       - /tmp
     volumes:
       - /sys/fs/cgroup:/sys/fs/cgroup:ro
-<<<<<<< HEAD
     privileged: true
     pre_build_image: true
     # cgroupns_mode: host
@@ -123,7 +110,6 @@ platforms:
     override_command: false
     ansible_connection_options:
       ansible_python_interpreter: "/usr/bin/python3"
-=======
     privileged: True
     pre_build_image: True
     override_command: false
@@ -138,7 +124,6 @@ platforms:
       - /sys/fs/cgroup:/sys/fs/cgroup:ro
     privileged: True
     pre_build_image: True
->>>>>>> 7ca3cfb (Update python interpreters for distros)
   - name: epel-opensuse-leap15.4
     image: quay.io/mark_olson/opensuse-leap15.4-systemd:latest
     tmpfs:
@@ -146,7 +131,6 @@ platforms:
       - /tmp
     volumes:
       - /sys/fs/cgroup:/sys/fs/cgroup:ro
-<<<<<<< HEAD
     privileged: true
     pre_build_image: true
     # cgroupns_mode: host
@@ -196,13 +180,11 @@ platforms:
     capabilities:
       - SYS_ADMIN
     override_command: false
-=======
     privileged: True
     pre_build_image: True
     override_command: false
     ansible_connection_options:
       ansible_python_interpreter: "/usr/bin/python3.11"
->>>>>>> 7ca3cfb (Update python interpreters for distros)
   - name: epel-rockylinux8
     image: quay.io/mark_olson/rockylinux8-systemd:latest
     tmpfs:
@@ -210,20 +192,17 @@ platforms:
       - /tmp
     volumes:
       - /sys/fs/cgroup:/sys/fs/cgroup:ro
-<<<<<<< HEAD
     privileged: true
     pre_build_image: true
     # cgroupns_mode: host
     capabilities:
       - SYS_ADMIN
     override_command: false
-=======
     privileged: True
     pre_build_image: True
     override_command: false
     ansible_connection_options:
       ansible_python_interpreter: "/usr/bin/python3"
->>>>>>> 7ca3cfb (Update python interpreters for distros)
   - name: epel-rockylinux9
     image: quay.io/mark_olson/rockylinux9-systemd:latest
     tmpfs:
@@ -231,7 +210,6 @@ platforms:
       - /tmp
     volumes:
       - /sys/fs/cgroup:/sys/fs/cgroup:ro
-<<<<<<< HEAD
     privileged: true
     pre_build_image: true
     # cgroupns_mode: host
@@ -239,34 +217,29 @@ platforms:
       - SYS_ADMIN
     override_command: false
   - name: epel-ubuntu22.04
-=======
     privileged: True
     pre_build_image: True
     override_command: false
     ansible_connection_options:
       ansible_python_interpreter: "/usr/bin/python3.11"
   - name: epel-ubuntu2204
->>>>>>> 7ca3cfb (Update python interpreters for distros)
     image: quay.io/mark_olson/ubuntu22.04-systemd:latest
     tmpfs:
       - /run
       - /tmp
     volumes:
       - /sys/fs/cgroup:/sys/fs/cgroup:ro
-<<<<<<< HEAD
     privileged: true
     pre_build_image: true
     # cgroupns_mode: host
     capabilities:
       - SYS_ADMIN
     override_command: false
-=======
     privileged: True
     pre_build_image: True
     override_command: false
     ansible_connection_options:
       ansible_python_interpreter: "/usr/bin/python3.11"
->>>>>>> 7ca3cfb (Update python interpreters for distros)
 provisioner:
   name: ansible
   lint: |

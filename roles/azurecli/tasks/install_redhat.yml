@@ -1,0 +1,23 @@
+---
+# Installation tasks for azurecli on RedHat distros
+
+- name: install_redhat | Install Microsoft repository key
+  ansible.builtin.rpm_key:
+    key: "{{ azurecli_repo_key_url }}"
+    state: present
+
+- name: install_redhat | Install Azure CLI repository
+  ansible.builtin.package:
+    name: "{{ azurecli_repo_rpm_url }}"
+    state: present
+
+- name: install_redhat | Install Azure CLI
+  ansible.builtin.package:
+    name: azure-cli
+    state: present
+
+- name: install_redhat | Upgrade Azure CLI
+  ansible.builtin.command: "az upgrade --all --yes"
+  register: azurecli_upgrade_cmd
+  when: azurecli_do_upgrade
+  changed_when: "'You already have the latest' not in azurecli_upgrade_cmd.stderr"

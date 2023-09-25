@@ -1,0 +1,12 @@
+---
+# This is an example playbook to execute Ansible tests.
+
+- name: Verify
+  hosts: all
+  gather_facts: false
+  become: false
+
+  tasks:
+    - name: Assert true for now
+      ansible.builtin.assert:
+        that: true

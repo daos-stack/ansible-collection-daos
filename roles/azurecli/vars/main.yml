@@ -1,0 +1,59 @@
+---
+# vars file for azurecli
+
+_azurecli_dep_pkgs:
+  default: []
+  debian:
+    - apt-transport-https
+    - curl
+    - ca-certificates
+    - lsb-release
+    - gnupg
+  redhat: []
+
+azurecli_dep_pkgs: "{{ _azurecli_dep_pkgs[ansible_distribution|replace(' ','_')|lower ~'_'~ ansible_distribution_major_version] |
+  d(_azurecli_dep_pkgs[ansible_distribution|replace(' ','_')|lower] |
+  d(_azurecli_dep_pkgs[ansible_os_family|lower ~'_'~ ansible_distribution_major_version] |
+  d(_azurecli_dep_pkgs[ansible_os_family|lower] |
+  d([])))) }}"
+
+_azurecli_repo_rpm_url:
+  redhat_8: "https://packages.microsoft.com/config/rhel/8/packages-microsoft-prod.rpm"
+  redhat_9: "https://packages.microsoft.com/config/rhel/9.0/packages-microsoft-prod.rpm"
+
+azurecli_repo_rpm_url: "{{ _azurecli_repo_rpm_url[ansible_distribution|replace(' ','_')|lower ~'_'~ ansible_distribution_major_version] |
+  d(_azurecli_repo_rpm_url[ansible_distribution|replace(' ','_')|lower] |
+  d(_azurecli_repo_rpm_url[ansible_os_family|lower ~'_'~ ansible_distribution_major_version] |
+  d(_azurecli_repo_rpm_url[ansible_os_family|lower] |
+  d('')))) }}"
+
+_azurecli_login_command:
+  # Log in with user name and password.
+  # Doesn't work with Microsoft accounts or accounts that
+  # have two-factor authentication enabled.
+  username_password: >
+    az login --username "{{ azurecli_username }}"
+    --password "{{ azurecli_password }}"
+    --allow-no-subscriptions
+
+  # Log in with a service principal using client secret or certificate.
+  # azurecli_username
+  # azurecli_password must contain a secret or a path to a certificate.
+  service_principal: >
+    az login --service-principal
+    --username "{{ azurecli_username }}"
+    --password "{{ azurecli_password }}"
+    --tenant "{{ azurecli_tenant }}"
+    --allow-no-subscriptions
+
+  # Log in using a VM's system-assigned managed identity.
+  identity: az login --identity --allow-no-subscriptions
+
+  # Log in using a VM's user-assigned managed identity.
+  # azurecli_username must contain the ID of a UAMI.
+  # Client or object ids of the service identity also work.
+  uami: >
+    az login --identity --username "{{ azurecli_username }}"
+    --allow-no-subscriptions
+
+azurecli_login_command: "{{ _azurecli_login_command[azurecli_login_method] }}"

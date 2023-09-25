@@ -1,0 +1,20 @@
+---
+# Main tasks file for azurecli
+
+- name: main | Include assert tasks
+  ansible.builtin.include_tasks: assert.yml
+  tags:
+    - azurecli
+    - azurecli_assert
+
+- name: main | Include distro specific install tasks
+  ansible.builtin.include_tasks: 'install_{{ ansible_os_family|lower }}.yml'
+  tags:
+    - azurecli
+    - azurecli_install
+
+- name: main | Include distro specific install tasks
+  ansible.builtin.include_tasks: config.yml
+  tags:
+    - azurecli
+    - azurecli_config

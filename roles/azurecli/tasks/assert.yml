@@ -1,0 +1,49 @@
+---
+# assert tasks for the azurecli role
+
+- name: Verify variables are set for azurecli_login_method=username_password
+  ansible.builtin.assert:
+    that:
+      - azurecli_username is defined
+      - azurecli_username | length > 0
+      - azurecli_password is defined
+      - azurecli_password | length > 0
+    fail_msg: >-
+      When azurecli_login_method='username_password' the
+      azurecli_username and azurecli_password variables
+      must be set.
+  when:
+    - azurecli_do_login
+    - azurecli_login_method == "username_password"
+
+- name: Verify variables are set for azurecli_login_method=service_principal
+  ansible.builtin.assert:
+    that:
+      - azurecli_username is defined
+      - azurecli_username | length > 0
+      - azurecli_password is defined
+      - azurecli_password | length > 0
+      - azurecli_tenant is defined
+      - azurecli_tenant | length > 0
+    fail_msg: >-
+      When azurecli_login_method='service_principal' the
+      azurecli_username, azurecli_password, and azurecli_tenant
+      variables must be set.
+      azurecli_password must contain a secret or a path to a certificate.
+      azurecli_tenant must contain the name or ID of a tenant.
+  when:
+    - azurecli_do_login
+    - azurecli_login_method == "service_principal"
+
+- name: Verify variables are set for azurecli_login_method=uami
+  ansible.builtin.assert:
+    that:
+      - azurecli_username is defined
+      - azurecli_username | length > 0
+    fail_msg: >-
+      When azurecli_login_method='uami' the
+      azurecli_username variable must be set to the ID of a
+      User-Assigned Managed Identity.
+  when:
+    - azurecli_do_login
+    - azurecli_login_method == "uami"

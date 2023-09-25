@@ -1,0 +1,80 @@
+---
+# Configuration tasks for azurecli
+
+- name: config | Get config settings
+  ansible.builtin.shell: >
+    az config get {{ config.setting }}
+    --local
+    --query 'value'
+    --output tsv
+    --only-show-errors 2>&1
+  loop: "{{ azurecli_config }}"
+  loop_control:
+    loop_var: config
+    label: "{{ config.setting }}"
+  register: azurecli_config_settings
+  failed_when: false
+  changed_when: false
+  ignore_errors: true
+
+- name: config | Set config settings
+  ansible.builtin.command: >
+    az config set {{ config.setting }}={{ config.value }}
+    --only-show-errors
+  loop: "{{ azurecli_config }}"
+  loop_control:
+    loop_var: config
+  changed_when: >
+    azurecli_config_settings.results |
+    selectattr('config.setting', 'equalto', config.setting) |
+    map(attribute='stdout') | first | lower != config.value | lower
+
+- name: config | Get default location config setting
+  ansible.builtin.shell: >
+    az config get default.location
+    --local
+    --query 'value'
+    --output tsv
+    --only-show-errors 2>&1
+  register: azurecli_default_location_setting
+  failed_when: false
+  changed_when: false
+  ignore_errors: true
+
+- name: config | Set default location
+  ansible.builtin.command: >
+    az configure --defaults location="{{ azurecli_default_location }}"
+  when:
+    - azurecli_default_location is defined
+    - azurecli_default_location | length > 0
+  changed_when: azurecli_default_location_setting.stdout != azurecli_default_location
+
+- name: config | Get default group config setting
+  ansible.builtin.shell: >
+    az config get default.group
+    --local
+    --query 'value'
+    --output tsv
+    --only-show-errors 2>&1
+  register: azurecli_default_group_setting
+  failed_when: false
+  changed_when: false
+  ignore_errors: true
+
+- name: config | Set default group
+  ansible.builtin.command: >
+    az configure --defaults group="{{ azurecli_default_group }}"
+  when:
+    - azurecli_default_group is defined
+    - azurecli_default_group | length > 0
+  changed_when: azurecli_default_group_setting.stdout != azurecli_default_group
+
+- name: config | Login and set defaults
+  block:
+    - name: config | Login to the Azure CLI
+      ansible.builtin.command: "{{ azurecli_login_command }}"
+
+    - name: config | Set default subscription
+      ansible.builtin.command: >
+        az account set --subscription "{{ azurecli_default_subscription }}"
+  when: azurecli_do_login

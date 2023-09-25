@@ -1,0 +1,61 @@
+---
+dependency:
+  name: galaxy
+  options:
+    role-file: "${MOLECULE_SCENARIO_DIRECTORY}/requirements.yml"
+    requirements-file: "${MOLECULE_SCENARIO_DIRECTORY}/requirements.yml"
+
+driver:
+  name: docker
+
+platforms:
+  - name: azurecli-almalinux8
+    image: quay.io/mark_olson/almalinux8-systemd:latest
+    command: /sbin/init
+    tmpfs:
+      - /run
+      - /tmp
+    volumes:
+      - /sys/fs/cgroup:/sys/fs/cgroup:ro
+    privileged: true
+    pre_build_image: true
+# cgroupns_mode: host # Valid values: host | private
+    capabilities:
+      - SYS_ADMIN
+    override_command: false
+    ansible_connection_options:
+      ansible_python_interpreter: "/usr/bin/python3"
+
+provisioner:
+  name: ansible
+  lint: |
+      yamllint .
+      ansible-lint
+
+verifier:
+  name: ansible
+
+scenario:
+  create_sequence:
+    - dependency
+    - create
+  check_sequence:
+    - dependency
+    - create
+    - converge
+    - check
+    - destroy
+  converge_sequence:
+    - dependency
+    - create
+    - converge
+  destroy_sequence:
+    - dependency
+    - destroy
+  test_sequence:
+    - dependency
+    - destroy
+    - syntax
+    - create
+    - converge
+    #- verify

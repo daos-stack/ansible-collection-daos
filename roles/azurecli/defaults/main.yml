@@ -1,0 +1,43 @@
+---
+# defaults file for azurecli
+
+# See the vars/main.yml for variables values that are different
+# for distros or other variable values.
+
+azurecli_do_login: false
+
+# Valid login methods:
+#     username_password
+#     service_principal
+#     identity,
+#     uami,
+azurecli_login_method: "uami"
+
+azurecli_username: ""
+azurecli_password: ""
+azurecli_service-principal: ""
+azurecli_tenant: ""
+
+azurecli_repo_key_url: "https://packages.microsoft.com/keys/microsoft.asc"
+
+azurecli_do_upgrade: true
+
+azurecli_default_subscription: ""
+azurecli_default_group: ""
+azurecli_default_location: ""
+
+# Note: boolean values should be specified as True|False
+#       values should be strings
+azurecli_config:
+  - setting: "output.show_survey_link"
+    value: "False"
+  - setting: "auto-upgrade.enable"
+    value: "True"
+  - setting: "core.disable_confirm_prompt"
+    value: "True"
+  - setting: "core.collect_telemetry"
+    value: "False"
+  - setting: "core.only_show_errors"
+    value: "True"
+  - setting: "logging.enable_log_file"
+    value: "True"
