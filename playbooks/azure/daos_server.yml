@@ -16,28 +16,27 @@
     daos_certs_az_vault_name: "{{ daos_certs_az_vault_name | default(lookup('env', 'DAOS_AZ_ARM_KEY_VAULT_NAME')) | default('demnfr4cxad3k-daos-kv') }}"
 
   tasks:
-
     - name: daos_server | Import selinux role
       import_role:
         name: daos_stack.daos.selinux
 
-    - name: daos_server | Import packages
+    - name: daos_server | Import packages role
       import_role:
         name: daos_stack.daos.packages
 
-    - name: daos_server | Import tune
+    - name: daos_server | Import tune role
       import_role:
         name: daos_stack.daos.tune
+
+    - name: daos_server | Import azurecli role
+      import_role:
+        name: daos_stack.daos.azurecli
 
     - name: daos_server | Get VMSS daos_server_vmss_info_debug
       azure.azcollection.azure_rm_virtualmachinescaleset_info:
         resource_group: "{{ daos_server_az_rg_name }}"
         name: "{{ daos_server_az_vmss_name }}"
       register: daos_server_vmss_info_debug
-
-    - name: daos_server | DEBUG daos_server_vmss_info_debug
-      debug:
-        var: daos_server_vmss_info_debug
 
     - name: daos_server | Wait until VMSS provisioning state is Succeeded
       azure.azcollection.azure_rm_virtualmachinescaleset_info:

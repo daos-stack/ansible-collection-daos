@@ -2,7 +2,7 @@
 # playbook:     daos.yml
 # playbook_fqn: daos_stack.daos.daos
 
-- name: Install DAOS
+- name: daos | Install DAOS
   hosts: "{{ target_hosts | default('localhost') }}"
   gather_facts: true
   become: true

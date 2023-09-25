@@ -4,13 +4,30 @@
   gather_facts: true
 
   vars:
+    azurecli_do_login: true
+    azurecli_login_method: "uami"
+    azurecli_default_subscription: "{{ azurecli_default_subscription | default(lookup('env', 'DAOS_AZ_CORE_ACCT_NAME')) | default('daos-rg') }}"
+    azurecli_default_group: "{{ azurecli_default_group | default(lookup('env', 'DAOS_AZ_CORE_RG_NAME')) | default('daos-rg') }}"
     daos_client_az_rg_name: "{{ daos_client_az_rg_name | default(lookup('env', 'DAOS_AZ_CORE_RG_NAME')) | default('daos-rg') }}"
     daos_client_server_host_list: "{{ daos_client_server_host_list | default([]) }}"
-    # daos_client_az_vmss_name: "{{ daos_client_az_vmss_name | default(lookup('env', 'DAOS_AZ_ARM_CLIENT_VMSS_NAME')) | default('daos-client-vmss') }}"
-    # daos_server_az_vmss_name: "{{ daos_server_az_vmss_name | default(lookup('env', 'DAOS_AZ_ARM_SERVER_VMSS_NAME')) | default('daos-server-vmss') }}"
     daos_certs_az_vault_name: "{{ daos_certs_az_vault_name | default(lookup('env', 'DAOS_AZ_ARM_KEY_VAULT_NAME')) | default('demnfr4cxad3k-daos-kv') }}"
 
   tasks:
+    - name: daos_client | Import selinux role
+      import_role:
+        name: daos_stack.daos.selinux
+
+    - name: daos_client | Import packages role
+      import_role:
+        name: daos_stack.daos.packages
+
+    - name: daos_client | Import tune role
+      import_role:
+        name: daos_stack.daos.tune
+
+    - name: daos_client | Import azurecli role
+      import_role:
+        name: daos_stack.daos.azurecli
 
     - name: daos_client | Set facts for daos role
       ansible.builtin.set_fact:

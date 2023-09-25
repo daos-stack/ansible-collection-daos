@@ -2,16 +2,16 @@
 # playbook:     daos_cluster.yml
 # playbook_fqn: daos_stack.daos.daos_cluster
 
-- name: Wait for hosts
+- name: daos_cluster | Wait for hosts
   hosts: all
   gather_facts: false
   become: false
   any_errors_fatal: true
 
   tasks:
-    - name: Wait for hosts to become ready
+    - name: daos_cluster | Wait for hosts to become ready
       block:
-        - name: Wait for port to be available
+        - name: daos_cluster | Wait for port to be available
           ansible.builtin.wait_for:
             port: "{{ ansible_port | default('22') }}"
             timeout: 600
@@ -19,26 +19,26 @@
           changed_when: false
           when: ansible_connection is defined
 
-        - name: Test connection
+        - name: daos_cluster | Test connection
           ansible.builtin.wait_for_connection:
             timeout: 300
           changed_when: false
 
-        - name: Test sudo
+        - name: daos_cluster | Test sudo
           ansible.builtin.command:
             cmd: sudo --version
           changed_when: false
 
       rescue:
-        - name: Unable to continue
+        - name: daos_cluster | Unable to continue
           ansible.builtin.debug:
             msg: "One or more hosts are not available. Cannot continue."
 
-        - name: End play
+        - name: daos_cluster | End play
           ansible.builtin.meta: end_play
 
 
-- name: DAOS cluster prep
+- name: daos_cluster | DAOS cluster prep
   hosts: all
   gather_facts: true
   become: true
@@ -52,13 +52,13 @@
       when: inventory_hostname not in groups['daos_admins']
 
 
-- name: DAOS cluster installation and configuration
+- name: daos_cluster | DAOS cluster installation and configuration
   hosts: all
   gather_facts: true
   become: true
 
   pre_tasks:
-    - name: Create access_points group
+    - name: daos_cluster | Create access_points group
       ansible.builtin.add_host:
         name: "{{ item }}"
         groups: access_points
@@ -67,7 +67,7 @@
       changed_when: false
       tags: always
 
-    - name: Create daos_access_points IP list
+    - name: daos_cluster | Create daos_access_points IP list
       ansible.builtin.set_fact:
         daos_access_points: "{{ groups.access_points |
           map('extract', hostvars, 'ansible_default_ipv4') |
