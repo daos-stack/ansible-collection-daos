@@ -4,6 +4,7 @@
 # Packages to be installed on all hosts
 _packages_common:
   amazon_2:
+    - fuse
     - htop
     - iftop
     - iotop
@@ -19,6 +20,7 @@ _packages_common:
   centos_7:
     - bind-utils
     - bzip2
+    - fuse
     - git
     - gzip
     - htop
@@ -51,6 +53,7 @@ _packages_common:
     - curl
     - dnf-plugins-core
     - dnf-utils
+    - fuse
     - git
     - gzip
     - htop
@@ -82,6 +85,7 @@ _packages_common:
   opensuse_leap_15:
     - bind-utils
     - bzip
+    - fuse
     - git
     - gzip
     - htop
@@ -110,6 +114,7 @@ _packages_common:
     - clustershell
     - curl
     - dnf-plugins-core
+    - fuse
     - git
     - gzip
     - htop
@@ -134,6 +139,7 @@ _packages_common:
     - which
     - yum-utils
   ubuntu:
+    - fuse
     - git
     - htop
     - iftop
