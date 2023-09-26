@@ -4,7 +4,6 @@
   gather_facts: true
 
   vars:
-    uamid: "{{ azurecli_username | default(lookup('env', 'DAOS_AZ_ARM_UAMID')) | default('daos-uami') }}"
     subscription: "{{ subscription | default(lookup('env', 'DAOS_AZ_CORE_ACCT_NAME')) | default('daos-rg') }}"
     group_name: "{{ group_name | default(lookup('env', 'DAOS_AZ_CORE_RG_NAME')) | default('daos-rg') }}"
     location: "{{ location | default(lookup('env', 'DAOS_AZ_CORE_LOCATION_NAME')) | default('') }}"
@@ -29,8 +28,7 @@
         name: daos_stack.daos.azurecli
       vars:
         azurecli_do_login: true
-        azurecli_login_method: "uami"
-        azurecli_username: "{{ uamid }}"
+        azurecli_login_method: "identity"
         azurecli_default_subscription: "{{ subscription }}"
         azurecli_default_group: "{{ group_name }}"
         azurecli_default_location: "{{ location }}"
