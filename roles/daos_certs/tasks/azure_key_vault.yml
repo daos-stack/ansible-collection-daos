@@ -8,17 +8,17 @@
       - daos_certs_az_vault_name | length > 0
     fail_msg: The daos_certs_az_vault_name variable must contain a value.
 
-- name: azure_key_vault | DEBUG daos_certs_generate
-  debug:
-    var: daos_certs_generate
+# - name: azure_key_vault | DEBUG daos_certs_generate
+#   debug:
+#     var: daos_certs_generate
 
-- name: azure_key_vault | DEBUG daos_certs_store_push_enabled
-  debug:
-    var: daos_certs_store_push_enabled
+# - name: azure_key_vault | DEBUG daos_certs_store_push_enabled
+#   debug:
+#     var: daos_certs_store_push_enabled
 
-- name: azure_key_vault | DEBUG daos_certs_store_pull_enabled
-  debug:
-    var: daos_certs_store_pull_enabled
+# - name: azure_key_vault | DEBUG daos_certs_store_pull_enabled
+#   debug:
+#     var: daos_certs_store_pull_enabled
 
 - name: azure_key_vault | Check to see if secrets exist in Azure key vault
   azure.azcollection.azure_rm_keyvaultsecret_info:
@@ -28,10 +28,6 @@
   loop: "{{ daos_certs_certs }}"
   loop_control:
     loop_var: cert
-
-# - name: DEBUG daos_certs_certs_kv_status
-#   debug:
-#     var: daos_certs_certs_kv_status
 
 - name: azure_key_vault | Convert cert files to base64
   ansible.builtin.shell: base64 "{{ cert.file_name }}" > "{{ cert.file_name }}.base64"
@@ -47,14 +43,6 @@
     - daos_certs_store_push_enabled
     - daos_certs_certs_kv_status.results | selectattr('cert.file_name', 'equalto', cert.file_name) | map(attribute='secrets') | first | length == 0
 
-  # loop: "{{ daos_certs_certs }}"
-  # loop_control:
-  #   loop_var: cert
-  # when:
-  #   - daos_certs_generate
-  #   - daos_certs_store_push_enabled
-  #   - daos_certs_certs_kv_status.cert.results[]
-
 - name: azure_key_vault | Add certs and keys as secrets in Azure Key Vault
   azure.azcollection.azure_rm_keyvaultsecret:
     secret_name: "{{ cert.kv_secret_name }}"
@@ -68,27 +56,6 @@
     - daos_certs_generate
     - daos_certs_store_push_enabled
     - daos_certs_certs_kv_status.results | selectattr('cert.file_name', 'equalto', cert.file_name) | map(attribute='secrets') | first | length == 0
-
-
-  #   - { secret_name: "daosca-cert",
-  #       base64_file: "{{ daos_certs_ca_dir }}/certs/daosCA.crt.base64" }
-  #   - { secret_name: "admin-cert",
-  #       base64_file: "{{ daos_certs_ca_dir }}/certs/admin.crt.base64" }
-  #   - { secret_name: "admin-key",
-  #       base64_file: "{{ daos_certs_ca_dir }}/certs/admin.key.base64" }
-  #   - { secret_name: "agent-cert",
-  #       base64_file: "{{ daos_certs_ca_dir }}/certs/agent.crt.base64" }
-  #   - { secret_name: "agent-key",
-  #       base64_file: "{{ daos_certs_ca_dir }}/certs/agent.key.base64" }
-  #   - { secret_name: "server-cert",
-  #       base64_file: "{{ daos_certs_ca_dir }}/certs/server.crt.base64" }
-  #   - { secret_name: "server-key",
-  #       base64_file: "{{ daos_certs_ca_dir }}/certs/server.key.base64" }
-  # loop_control:
-  #   loop_var: daos_certs_cert
-  # when:
-  #   - daos_certs_generate
-  #   - daos_certs_store_push_enabled
 
 - name: azure_key_vault | Create /etc/daos/certs/clients dir
   ansible.builtin.file:
@@ -126,3 +93,9 @@
     label: "{{ daos_certs_cert.cert.file_path }}"
   when:
     - daos_certs_store_pull_enabled
+
+- name: azure_key_vault | Copy agent.crt to /etc/daos/certs/clients
+  ansible.builtin.copy:
+    src: "/etc/daos/certs/agent.crt"
+    dest: "/etc/daos/certs/clients/agent.crt"
+    remote_src: yes

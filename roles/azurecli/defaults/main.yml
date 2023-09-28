@@ -41,3 +41,7 @@ azurecli_config:
     value: "True"
   - setting: "logging.enable_log_file"
     value: "True"
+
+azurecli_extensions:
+  - bastion
+  - ssh

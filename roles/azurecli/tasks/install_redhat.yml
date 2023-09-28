@@ -21,3 +21,7 @@
   register: azurecli_upgrade_cmd
   when: azurecli_do_upgrade
   changed_when: "'You already have the latest' not in azurecli_upgrade_cmd.stderr"
+
+- name: install_redhat | Install Azure CLI extensions
+  ansible.builtin.command: "az extension add --name {{ item }}"
+  loop: "{{ azurecli_extensions }}"
