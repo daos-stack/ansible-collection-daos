@@ -4,13 +4,13 @@
   gather_facts: true
 
   vars:
-    subscription: "{{ subscription | default(lookup('env', 'DAOS_AZ_CORE_ACCT_NAME')) | default('daos-rg') }}"
-    group_name: "{{ group_name | default(lookup('env', 'DAOS_AZ_CORE_RG_NAME')) | default('daos-rg') }}"
-    location: "{{ location | default(lookup('env', 'DAOS_AZ_CORE_LOCATION_NAME')) | default('') }}"
-    vmss_name: "{{ vmss_name | default(lookup('env', 'DAOS_AZ_ARM_SERVER_VMSS_NAME')) | default('daos-server-vmss') }}"
-    vmss_max_retries: 90
-    vmss_polling_interval: 10
-    vault_name: "{{ vault_name | default(lookup('env', 'DAOS_AZ_ARM_KEY_VAULT_NAME')) | default('demnfr4cxad3k-daos-kv') }}"
+    az_subscription: "{{ subscription | default(lookup('env', 'DAOS_AZ_CORE_ACCT_NAME')) | default('daos-rg') }}"
+    az_group_name: "{{ group_name | default(lookup('env', 'DAOS_AZ_CORE_RG_NAME')) | default('daos-rg') }}"
+    az_location: "{{ location | default('DAOS_AZ_CORE_LOCATION') | default('') }}"
+    az_vault_name: "{{ vault_name | default(lookup('env', 'DAOS_AZ_ARM_KEY_VAULT_NAME')) | default('') }}"
+    az_vmss_name: "{{ vmss_name | default(lookup('env', 'DAOS_AZ_ARM_SERVER_VMSS_NAME')) | default('daos-server-vmss') }}"
+    az_vmss_max_retries: 90
+    az_vmss_polling_interval: 10
 
   tasks:
     - name: daos_server | Import selinux role
@@ -31,29 +31,29 @@
       vars:
         azurecli_do_login: true
         azurecli_login_method: "identity"
-        azurecli_default_subscription: "{{ subscription }}"
-        azurecli_default_group: "{{ group_name }}"
-        azurecli_default_location: "{{ location }}"
+        azurecli_default_subscription: "{{ az_subscription }}"
+        azurecli_default_group: "{{ az_group_name }}"
+        azurecli_default_location: "{{ az_location }}"
 
     - name: daos_server | Get VMSS daos_server_vmss_info_debug
       azure.azcollection.azure_rm_virtualmachinescaleset_info:
-        resource_group: "{{ group_name }}"
-        name: "{{ vmss_name }}"
+        resource_group: "{{ az_group_name }}"
+        name: "{{ az_vmss_name }}"
       register: daos_server_vmss_info_debug
 
     - name: daos_server | Wait until VMSS provisioning state is Succeeded
       azure.azcollection.azure_rm_virtualmachinescaleset_info:
-        resource_group: "{{ group_name }}"
-        name: "{{ vmss_name }}"
+        resource_group: "{{ az_group_name }}"
+        name: "{{ az_vmss_name }}"
       register: daos_server_vmss_info
-      retries: "{{ vmss_max_retries }}"
-      delay: "{{ vmss_polling_interval }}"
+      retries: "{{ az_vmss_max_retries }}"
+      delay: "{{ az_vmss_polling_interval }}"
       until: daos_server_vmss_info.vmss[0].provisioning_state == "Succeeded"
 
     - name: daos_server | Retrieve VM instances in VMSS
       azure.azcollection.azure_rm_virtualmachinescalesetinstance_info:
-        resource_group: "{{ group_name }}"
-        vmss_name: "{{ vmss_name }}"
+        resource_group: "{{ az_group_name }}"
+        vmss_name: "{{ az_vmss_name }}"
       register: daos_server_vmss_instance_info
 
     - name: daos_server | Get bdev addresses
@@ -115,7 +115,7 @@
         name: daos_certs
       vars:
         daos_certs_store_type: azure_key_vault
-        daos_certs_az_vault_name: "{{ vault_name }}"
+        daos_certs_az_vault_name: "{{ az_vault_name }}"
         daos_certs_generate: "{{ ansible_hostname == daos_server_first_host_name }}"
         daos_certs_store_push_enabled: "{{ ansible_hostname == daos_server_first_host_name }}"
         daos_certs_store_pull_enabled: true

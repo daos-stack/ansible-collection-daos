@@ -1,12 +1,12 @@
 ---
 # redhat family tasks file for inteloneapi
 
-- name: Import GPG key for Intel oneAPI repo
+- name: install_redhat | Import GPG key for Intel oneAPI repo
   ansible.builtin.rpm_key:
     key: "{{ inteloneapi_gpgkey_url }}"
     state: present
 
-- name: Create Intel oneAPI repo file
+- name: install_redhat | Create Intel oneAPI repo file
   ansible.builtin.template:
     src: "etc/yum.repos.d/oneAPI.repo.j2"
     dest: "{{ inteloneapi_repo_file }}"
@@ -14,7 +14,7 @@
     group: root
     mode: "0644"
 
-- name: Install Intel oneAPI MPI
+- name: install_redhat | Install Intel oneAPI MPI
   ansible.builtin.package:
     name: "{{ inteloneapi_pkgs }}"
     state: present

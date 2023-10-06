@@ -1,17 +1,17 @@
 ---
 # redhat OS family tasks for io500
 
-- name: Install the 'Development tools' group
+- name: install_redhat | Install the 'Development tools' group
   ansible.builtin.package:
     name: "@Development tools"
     state: present
 
-- name: Install dependecies
+- name: install_redhat | Install dependecies
   ansible.builtin.package:
     name: "{{ io500_dep_pkgs }}"
     state: present
 
-- name: Install daos-devel
+- name: install_redhat | Install daos-devel
   ansible.builtin.package:
     name: "daos-devel"
     state: present

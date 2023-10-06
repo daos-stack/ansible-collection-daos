@@ -36,6 +36,7 @@ _io500_dep_pkgs:
   redhat_8:
     - bzip2-devel
     - clustershell
+    - daos-devel
     - gcc-toolset-9-gcc
     - gcc-toolset-9-gcc-c++
     - git
@@ -55,6 +56,7 @@ _io500_dep_pkgs:
     - which
   suse:
     - bzip2
+    - daos-devel
     - libzip-devel
     - clustershell
     - git
