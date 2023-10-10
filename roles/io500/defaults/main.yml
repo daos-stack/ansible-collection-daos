@@ -1,6 +1,10 @@
 ---
 # defaults file for io500
 
+io500_version: io500-sc22
+io500_path: "/opt/{{ io500_version }}"
+io500_run_io500_path: "/home/daos_admin/run_io500.sh"
+
 io500_tools_dir: /usr/local/tools
 
 # cmake

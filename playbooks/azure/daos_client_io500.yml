@@ -15,17 +15,17 @@
       debug:
         var: az_subscription
 
-    # - name: daos_client | Import selinux role
-    #   import_role:
-    #     name: daos_stack.daos.selinux
+    - name: daos_client | Import selinux role
+      import_role:
+        name: daos_stack.daos.selinux
 
-    # - name: daos_client | Import packages role
-    #   import_role:
-    #     name: daos_stack.daos.packages
+    - name: daos_client | Import packages role
+      import_role:
+        name: daos_stack.daos.packages
 
-    # - name: daos_client | Import tune role
-    #   import_role:
-    #     name: daos_stack.daos.tune
+    - name: daos_client | Import tune role
+      import_role:
+        name: daos_stack.daos.tune
 
     - name: daos_client | Import azurecli role
       import_role:
@@ -37,16 +37,16 @@
         azurecli_default_group: "{{ az_group_name }}"
         azurecli_default_az_location: "{{ az_location }}"
 
-    # - name: daos_client | Add localhost to the inventory groups
-    #   add_host:
-    #     name: localhost
-    #     groups: "{{ item }}"
-    #   loop:
-    #     - daos_admins
-    #     - daos_clients
-    #   delegate_to: localhost
-    #   run_once: true
-    #   changed_when: false
+    - name: daos_client | Add localhost to the inventory groups
+      add_host:
+        name: localhost
+        groups: "{{ item }}"
+      loop:
+        - daos_admins
+        - daos_clients
+      delegate_to: localhost
+      run_once: true
+      changed_when: false
 
     - name: daos_client | Import daos role
       import_role:

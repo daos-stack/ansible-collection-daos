@@ -1,19 +1,6 @@
 ---
 # redhat OS family tasks for io500
 
-- name: DEBUG io500_powertools_repo_file
-  debug:
-    var: io500_powertools_repo_file
-
-- name: install_redhat | Enable powertools repo
-  community.general.ini_file:
-    path: "/etc/yum.repos.d/{{ io500_powertools_repo_file }}"
-    section: "powertools"
-    option: enabled
-    value: "1"
-    mode: "0644"
-    state: present
-
 - name: install_redhat | Install the 'Development tools' group
   ansible.builtin.package:
     name: "@Development tools"
@@ -28,3 +15,28 @@
   ansible.builtin.package:
     name: "daos-devel"
     state: present
+
+- name: Clone IO500 repo
+  ansible.builtin.git:
+    repo: https://github.com/IO500/io500.git
+    dest: "{{ io500_path }}"
+    version: "{{ io500_version }}"
+    force: true
+
+- name: Run prepare.sh script
+  ansible.builtin.shell: |
+    export I_MPI_OFI_LIBRARY_INTERNAL=0
+    export I_MPI_OFI_PROVIDER="tcp;ofi_rxm"
+    source /opt/intel/oneapi/setvars.sh
+    "{{ io500_path }}/prepare.sh"
+  args:
+    chdir: "{{ io500_path }}"
+    executable: /bin/bash
+
+- name: Copy run_io500.sh script
+  ansible.builtin.template:
+    src: run_io500.sh.j2
+    dest: "{{ io500_run_io500_path }}"
+    owner: daos_admin
+    group: daos_admin
+    mode: '0755'

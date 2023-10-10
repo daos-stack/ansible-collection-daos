@@ -81,25 +81,3 @@ io500_dep_pkgs: '{{ _io500_dep_pkgs[ansible_distribution|replace(" ","_")|lower 
   d(_io500_dep_pkgs[ansible_os_family|lower ~"_"~ ansible_distribution_major_version] |
   d(_io500_dep_pkgs[ansible_os_family|lower] |
   d(_io500_dep_pkgs["default"]))))) }}'
-
-
-_io500_powertools_repo_name:
-  RedHat: powertools
-  AlmaLinux_9: crb
-
-io500_powertools_repo_name:
-  "io500_{{ _powertools_repo_name[ansible_distribution ~ '_' ~ ansible_distribution_major_version] | default(
-  _io500_powertools_repo_name[ansible_distribution] ) | default(
-  _io500_powertools_repo_name[ansible_os_family] ) }}"
-
-_io500_powertools_repo_file:
-  RedHat: "{{ ansible_distribution }}-PowerTools.repo"
-  Rocky: "{{ ansible_distribution }}-PowerTools.repo"
-  AlmaLinux_8: "almalinux-powertools.repo"
-  AlmaLinux_9: "almalinux-crb.repo"
-  CentOS: "{{ ansible_distribution }}-{{ ansible_distribution_release }}-powertools.repo"
-
-io500_powertools_repo_file:
-  "{{ _io500_powertools_repo_file[ansible_distribution ~ '_' ~ ansible_distribution_major_version] | default(
-  _io500_powertools_repo_file[ansible_distribution] ) | default(
-  _io500_powertools_repo_file[ansible_os_family] ) }}"
