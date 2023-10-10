@@ -1,6 +1,19 @@
 ---
 # redhat OS family tasks for io500
 
+- name: DEBUG io500_powertools_repo_file
+  debug:
+    var: io500_powertools_repo_file
+
+- name: install_redhat | Enable powertools repo
+  community.general.ini_file:
+    path: "/etc/yum.repos.d/{{ io500_powertools_repo_file }}"
+    section: "powertools"
+    option: enabled
+    value: "1"
+    mode: "0644"
+    state: present
+
 - name: install_redhat | Install the 'Development tools' group
   ansible.builtin.package:
     name: "@Development tools"
