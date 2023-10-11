@@ -37,6 +37,22 @@
   ansible.builtin.template:
     src: run_io500.sh.j2
     dest: "{{ io500_run_io500_path }}"
-    owner: daos_admin
-    group: daos_admin
+    owner: "{{ io500_admin_username }}"
+    group: "{{ io500_admin_username }}"
     mode: '0755'
+
+- name: Create io500_ini directory
+  ansible.builtin.file:
+    path: "{{ io500_run_io500_path | dirname }}/io500_ini"
+    state: directory
+    owner: "{{ io500_admin_username }}"
+    group: "{{ io500_admin_username }}"
+    mode: '0755'
+
+- name: Copy io500 ini files
+  ansible.builtin.copy:
+    src: "io500_ini"
+    dest: "{{ io500_run_io500_path | dirname }}"
+    owner: "{{ io500_admin_username }}"
+    group: "{{ io500_admin_username }}"
+    mode: '0644'
