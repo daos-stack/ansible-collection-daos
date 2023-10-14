@@ -19,31 +19,27 @@
 # Instructions that were referenced to create this script are at
 # https://daosio.atlassian.net/wiki/spaces/DC/pages/11167301633/IO-500+SC22
 #
-#set -eo pipefail
+set -eo pipefail
 trap 'echo "An error occurred. Unmounting and exiting."; unmount' ERR
 
 SCRIPT_DIR=$(cd "$(dirname "${BASH_SOURCE[0]}")" &>/dev/null && pwd -P)
 
-DAOS_IO500_VERSION_TAG="io500-sc22"
-DAOS_IO500_STONEWALL_TIME="${IO500_STONEWALL_TIME:-5}"
-DAOS_IO500_DIR="${IO500_DIR:="/opt/${DAOS_IO500_VERSION_TAG}"}"
-DAOS_IO500_DFUSE_DIR="${IO500_DFUSE_DIR:="${HOME}/daos_fuse/${DAOS_IO500_VERSION_TAG}"}"
-DAOS_IO500_INI="${SCRIPT_DIR}/io500_ini/io500-sc22.config-template.daos-rf0.ini"
-DAOS_IO500_DATAFILES_DFUSE_DIR="${IO500_DATAFILES_DFUSE_DIR:="${IO500_DFUSE_DIR}/datafiles"}"
-DAOS_IO500_RESULTS_DFUSE_DIR="${IO500_RESULTS_DFUSE_DIR:="${IO500_DFUSE_DIR}/results"}"
-DAOS_IO500_RESULTS_DIR="${IO500_RESULTS_DIR:="${HOME}/${DAOS_IO500_VERSION_TAG}/results"}"
-DAOS_SERVER_HOSTS_FILE="${SCRIPT_DIR}/hosts_servers"
-DAOS_CLIENT_HOSTS_FILE="${SCRIPT_DIR}/hosts_clients"
-DAOS_SERVER_INSTANCE_COUNT=$(cat ${DAOS_SERVER_HOSTS_FILE} | wc -l)
-DAOS_SERVER_LIST_CSV=$(awk -vORS=, '{ print $1 }' "${DAOS_SERVER_HOSTS_FILE}" | sed 's/,$/\n/')
+: "${DAOS_HOSTS_FILE_SERVERS:="${SCRIPT_DIR}/hosts_servers"}"
+: "${DAOS_HOSTS_FILE_CLIENTS:="${SCRIPT_DIR}/hosts_clients"}"
+: "${DAOS_POOL_NAME:="io500_pool"}"
+: "${DAOS_CONT_NAME:="io500_cont"}"
+: "${DAOS_CONT_CHUNK_SIZE:=1048576}"
+: "${DAOS_CONT_REPLICATION_FACTOR:="rf:0"}"
+: "${DAOS_IO500_CONFIG_INI_TPL_FILE_NAME:="config-full-isc22.ini"}"
+: "${DAOS_IO500_CONFIG_INI_TPL_FILE_URL:="https://raw.githubusercontent.com/mchaarawi/io500/ini_files/${MY_IO500_CONFIG_INI_FILE_NAME}"}"
+: "${DAOS_IO500_VERSION_TAG:="io500-sc23"}"
+: "${DAOS_IO500_DIR:="/opt/${DAOS_IO500_VERSION_TAG}"}"
+: "${DAOS_IO500_DFUSE_DIR:="${HOME}/dfuse/${DAOS_IO500_VERSION_TAG}"}"
+: "${DAOS_IO500_DFUSE_DATA_DIR:="${DAOS_IO500_DFUSE_DIR}/data"}"
+: "${DAOS_IO500_RESULTS_DIR:="${HOME}/${DAOS_IO500_VERSION_TAG}/results"}"
+: "${DAOS_IO500_STONEWALL_TIME:=30}"
 
-DAOS_POOL_NAME="${DAOS_POOL_NAME:=io500_pool}"
-DAOS_CONT_NAME="${DAOS_CONT_NAME:=io500_cont}"
-DAOS_CONT_REPLICATION_FACTOR="${DAOS_CONT_REPLICATION_FACTOR:="rf:0"}"
-DAOS_TIER_RATIO="${DAOS_TIER_RATIO:=3}"
-DAOS_CHUNK_SIZE="${DAOS_CHUNK_SIZE:=1048576}"
-
-
+# BEGIN: LOGGING
 : "${DAOS_AZ_LOG_LEVEL:="INFO"}"
 : "${LOG_COLS:="80"}"
 : "${LOG_LINE_CHAR:="-"}"
@@ -107,41 +103,64 @@ log.section() {
     if [[ -t 1 ]]; then tput sgr0; fi
   fi
 }
+# END: LOGGING
 
-run_cmd_servers() {
+run_clush_servers() {
   local cmd="$1"
-  clush --hostfile="${DAOS_SERVER_HOSTS_FILE}" --dsh "${cmd}"
+  clush --hostfile="${DAOS_HOSTS_FILE_SERVERS}" --dsh "${cmd}"
 }
 
-run_cmd_clients() {
+run_clush_clients() {
   local cmd="$1"
-  clush --hostfile="${DAOS_CLIENT_HOSTS_FILE}" --dsh "${cmd}"
+  clush --hostfile="${DAOS_HOSTS_FILE_CLIENTS}" --dsh "${cmd}"
 }
 
-unmount_defuse() {
-  log.info "Unmounting dfuse mounts"
-  run_cmd_clients "if findmnt --target \"${IO500_DFUSE_DIR}\" > /dev/null; then sudo fusermount3 -u '${IO500_DFUSE_DIR}'; fi"
-  run_cmd_clients "rm -rf '${IO500_DFUSE_DIR}'"
+unmount_dfuse_dir() {
+  log.info "Unmounting dfuse "
+  run_clush_clients "if findmnt --target \"${DAOS_IO500_DFUSE_DIR}\" > /dev/null; then sudo fusermount3 -u '${DAOS_IO500_DFUSE_DIR}'; fi"
+  run_clush_clients "rm -rf '${DAOS_IO500_DFUSE_DIR}'"
 }
 
 stop_clients() {
   log.info "Stopping daos_agent service on clients"
-  run_cmd_clients "if sudo systemctl is-active daos_agent | grep -q active; then sudo systemctl stop daos_agent;fi"
+  run_clush_clients "if sudo systemctl is-active daos_agent | grep -q active; then sudo systemctl stop daos_agent;fi"
 }
 
 start_clients() {
-  log.info "Stopping daos_agent service on clients"
-  run_cmd_clients "systemctl start daos_agent"
+  log.info "Starting daos_agent service on clients"
+  run_clush_clients "sudo systemctl start daos_agent"
+}
+
+stop_servers() {
+  log.info "Stopping daos_server service on servers"
+  run_clush_servers "if sudo systemctl is-active daos_server | grep -q active; then sudo systemctl stop daos_server;fi"
+}
+
+start_servers() {
+  log.info "Starting daos_server service on servers"
+  run_clush_servers "sudo systemctl start daos_server"
+    # shellcheck disable=SC2016
+  run_clush_servers 'while /bin/netstat -an | /bin/grep \:10001 | /bin/grep -q LISTEN; [ $? -ne 0 ]; do let TRIES-=1; if [ $TRIES -gt 1 ]; then echo "waiting ${TRIES}"; sleep $WAIT;else echo "Timed out";break; fi;done'
+  run_clush_servers "sudo systemctl is-active daos_server"
+}
+
+clean_storage() {
+  log.info "Cleaning DAOS storage"
+  stop_servers
+  run_clush_servers 'sudo rm -rf /var/daos/ram/*'
+  run_clush_servers 'sudo rm -rf /var/daos/*.log'
+  run_clush_servers '[[ -d /var/daos/ram ]] && sudo umount /var/daos/ram/ || echo "/var/daos/ram/ unmounted"'
+  start_servers
+  log.info "Finished cleaning storage on DAOS servers"
 }
 
 format_storage() {
+  local server_count=$(cat "${DAOS_HOSTS_FILE_SERVERS}" | wc -l)
   log.info "Format DAOS storage"
-  run_cmd_servers "sudo dmg -l '127.0.0.1' storage format"
-
+  sudo dmg storage format
   log.info "Waiting for DAOS storage format to finish ... "
   while true; do
-    if [[ $(sudo dmg system query -v | grep -c -i joined) -eq ${DAOS_SERVER_INSTANCE_COUNT} ]]; then
-      printf "\n"
+    if [[ $(sudo dmg system query -v | grep -c -i joined) -eq ${server_count} ]]; then
       log.info "DAOS storage format finished"
       sudo dmg system query -v
       break
@@ -149,19 +168,6 @@ format_storage() {
     printf "%s" "."
     sleep 5
   done
-}
-
-
-clean_storage() {
-  log.info "Cleaning DAOS storage"
-  run_cmd_servers 'sudo systemctl stop daos_server'
-  run_cmd_servers 'sudo rm -rf /var/daos/ram/*'
-  run_cmd_servers 'sudo rm -rf /var/daos/*.log'
-  run_cmd_servers '[[ -d /var/daos/ram ]] && sudo umount /var/daos/ram/ || echo "/var/daos/ram/ unmounted"'
-  run_cmd_servers 'sudo systemctl start daos_server'
-  # shellcheck disable=SC2016
-  run_cmd_servers 'while /bin/netstat -an | /bin/grep \:10001 | /bin/grep -q LISTEN; [ $? -ne 0 ]; do let TRIES-=1; if [ $TRIES -gt 1 ]; then echo "waiting ${TRIES}"; sleep $WAIT;else echo "Timed out";break; fi;done'
-  log.info "Finished cleaning storage on DAOS servers"
 }
 
 storage_scan() {
@@ -182,7 +188,6 @@ create_pool() {
   log.info "Setting pool property: reclaim=disabled"
   sudo dmg pool set-prop "${DAOS_POOL_NAME}" "reclaim:disabled"
   sudo dmg pool update-acl "${DAOS_POOL_NAME}" -e "A::daos_admin@:rwdtTaAo"
-
   log.info "Pool created successfully"
   sudo dmg pool query "${DAOS_POOL_NAME}"
 }
@@ -193,7 +198,7 @@ create_container() {
   if ! daos container list "${DAOS_POOL_NAME}" | grep -q "${DAOS_CONT_NAME}"; then
     daos container create \
       --type=POSIX \
-      --chunk-size="${DAOS_CHUNK_SIZE}" \
+      --chunk-size="${DAOS_CONT_CHUNK_SIZE}" \
       --properties="${DAOS_CONT_REPLICATION_FACTOR}" \
       "${DAOS_POOL_NAME}" \
       "${DAOS_CONT_NAME}"
@@ -204,104 +209,116 @@ create_container() {
 }
 
 mount_dfuse() {
-  if [[ -d "${IO500_DFUSE_DIR}" ]]; then
-    log.warn "DFuse dir ${IO500_DFUSE_DIR} already exists."
+  if [[ -d "${DAOS_IO500_DFUSE_DIR}" ]]; then
+    log.warn "DFuse dir ${DAOS_IO500_DFUSE_DIR} already exists."
   else
-    log.info "Use dfuse to mount ${DAOS_CONT_NAME} on ${IO500_DFUSE_DIR}"
-    run_cmd_clients "[[ ! -d mkdir ${IO500_DFUSE_DIR} ]] && mkdir -p ${IO500_DFUSE_DIR}"
-    run_cmd_clients "dfuse -S --pool=${DAOS_POOL_NAME} --container=${DAOS_CONT_NAME} --mountpoint=${IO500_DFUSE_DIR}"
+    log.info "Use dfuse to mount ${DAOS_CONT_NAME} on ${DAOS_IO500_DFUSE_DIR}"
+    run_clush_clients "[[ ! -d ${DAOS_IO500_DFUSE_DIR} ]] && mkdir -p ${DAOS_IO500_DFUSE_DIR}"
+    run_clush_clients "dfuse -S --pool=${DAOS_POOL_NAME} --container=${DAOS_CONT_NAME} --mountpoint=${DAOS_IO500_DFUSE_DIR}"
 
     local counter=0
     local max_tries=120
-    while ! findmnt --target "${IO500_DFUSE_DIR}"; do
+    while ! findmnt --target "${DAOS_IO500_DFUSE_DIR}"; do
       sleep 1
       if [[ $counter -lt $max_tries ]]; then
         counter=$((counter + 1))
       else
-        log.error "Failed to mount '${IO500_DFUSE_DIR}' with dfuse"
+        log.error "Failed to mount '${DAOS_IO500_DFUSE_DIR}' with dfuse"
         exit 1
       fi
     done
 
-    log.info "DFuse mount complete!"
+    mkdir -p "${DAOS_IO500_DFUSE_DATA_DIR}"
+    mkdir -p "${DAOS_IO500_RESULTS_DIR}"
 
-    # Create directories for io500 data on dfuse mount
-    mkdir -p "${IO500_DATAFILES_DFUSE_DIR}"
-    mkdir -p "${IO500_RESULTS_DFUSE_DIR}"
+    log.info "DFuse mount complete!"
   fi
 }
 
-io500_prepare() {
+io500_create_ini() {
+  local client_count=$(cat "${DAOS_HOSTS_FILE_CLIENTS}" | wc -l)
+  local temp_ini="${SCRIPT_DIR}/temp.ini"
+
   log.info "Load Intel MPI"
   export I_MPI_OFI_LIBRARY_INTERNAL=0
   export I_MPI_OFI_PROVIDER="tcp;ofi_rxm"
+  export PATH=$PATH:${DAOS_IO500_DIR}/bin
   source /opt/intel/oneapi/setvars.sh
 
-  export PATH=$PATH:${IO500_DIR}/bin
-  export LD_LIBRARY_PATH=/usr/local/mpifileutils/install/lib64/:$LD_LIBRARY_PATH
-
   log.info "Prepare config file 'temp.ini' for IO500"
-
-  # Set the following vars in order to do envsubst with config-full-sc21.ini
   export DAOS_POOL="${DAOS_POOL_NAME}"
   export DAOS_CONT="${DAOS_CONT_NAME}"
-  export MFU_POSIX_TS=1
-  export DAOS_IO500_NP=$(( DAOS_CLIENT_INSTANCE_COUNT * $(nproc --all) ))
+  export DAOS_IO500_NP=$(( $client_count * $(nproc --all) ))
   export DAOS_IO500_PPN=$(( $(nproc --all) ))
-  export MPI_RUN_OPTS="--bind-to socket"
+  export MFU_POSIX_TS=1
+  export MPI_RUN_OPTS="${MPI_RUN_OPTS:="--bind-to socket"}"
 
-  local temp_ini="${SCRIPT_DIR}/temp.ini"
   # shellcheck disable=SC2153
-  envsubst <"${DAOS_IO500_INI}" > "${temp_ini}"
-  sed -i "s|^datadir.*|datadir = ${DAOS_IO500_DATAFILES_DFUSE_DIR}|g" "${temp_ini}"
-  sed -i "s|^resultdir.*|resultdir = ${DAOS_IO500_RESULTS_DFUSE_DIR}|g" "${temp_ini}"
+  envsubst < "${DAOS_IO500_DIR}/${DAOS_IO500_CONFIG_INI_TPL_FILE_NAME}" > "${temp_ini}"
+  sed -i "s|^datadir.*|datadir = ${DAOS_IO500_DFUSE_DATA_DIR}|g" "${temp_ini}"
+  sed -i "s|^resultdir.*|resultdir = ${DAOS_IO500_RESULTS_DIR}|g" "${temp_ini}"
   sed -i "s/^stonewall-time.*/stonewall-time = ${DAOS_IO500_STONEWALL_TIME}/g" "${temp_ini}"
   sed -i "s/^transferSize.*/transferSize = 4m/g" "${temp_ini}"
   sed -i "s/^filePerProc.*/filePerProc = TRUE /g" "${temp_ini}"
   sed -i "s/^nproc.*/nproc = ${DAOS_IO500_NP}/g" "${temp_ini}"
+}
 
-  # Prepare final results directory for the current run
-  TIMESTAMP=$(date "+%Y-%m-%d_%H%M%S")
-  DAOS_IO500_RESULTS_DIR_TIMESTAMPED="${DAOS_IO500_RESULTS_DIR}/${TIMESTAMP}"
-  log.info "Creating directory for results ${DAOS_IO500_RESULTS_DIR_TIMESTAMPED}"
-  mkdir -p "${DAOS_IO500_RESULTS_DIR_TIMESTAMPED}"
+run_io500() {
+  log.info "Running IO500 Benchmark"
+  # shellcheck disable=SC2086
+  mpiexec  \
+    -f "${SCRIPT_DIR}/hosts_clients" \
+    -np ${DAOS_IO500_NP} \
+    -ppn ${DAOS_IO500_PPN} \
+    $MPI_RUN_OPTS \
+    "${DAOS_IO500_DIR}/io500" \
+    temp.ini
+  log.info "IO500 run complete!"
 }
 
 main() {
   log.section "IO500 Run"
   log.debug.vars
   stop_clients
-  unmount_defuse
+  unmount_dfuse_dir
   clean_storage
   format_storage
   storage_scan
   show_storage_usage
-  create_pool
   start_clients
+  create_pool
   create_container
   mount_dfuse
-  io500_prepare
+  io500_create_ini
+  run_io500
 }
 
 main
 
+
+  # # Prepare final results directory for the current run
+  # TIMESTAMP=$(date "+%Y-%m-%d_%H%M%S")
+  # export DAOS_IO500_RESULTS_DIR_TIMESTAMPED="${DAOS_IO500_RESULTS_DIR}/${TIMESTAMP}"
+  # log.info "Creating directory for results ${DAOS_IO500_RESULTS_DIR_TIMESTAMPED}"
+  # mkdir -p "${DAOS_IO500_RESULTS_DIR_TIMESTAMPED}"
+
 # cleanup() {
 # #   log.info "Clean up DAOS storage"
-# #   unmount_defuse
+# #   unmount_dfuse_dir
 # #   "${SCRIPT_DIR}/clean_storage.sh"
 
 #   log.info "Clean DAOS storage"
-#   run_cmd_servers --dsh 'sudo systemctl stop daos_server'
-#   run_cmd_servers --dsh 'sudo rm -rf /var/daos/ram/*'
-#   run_cmd_servers --dsh 'sudo rm -rf /var/daos/*.log'
-#   run_cmd_servers --dsh '[[ -d /var/daos/ram ]] && sudo umount /var/daos/ram/ || echo "/var/daos/ram/ unmounted"'
-#   run_cmd_servers --dsh 'sudo systemctl start daos_server'
+#   run_clush_servers --dsh 'sudo systemctl stop daos_server'
+#   run_clush_servers --dsh 'sudo rm -rf /var/daos/ram/*'
+#   run_clush_servers --dsh 'sudo rm -rf /var/daos/*.log'
+#   run_clush_servers --dsh '[[ -d /var/daos/ram ]] && sudo umount /var/daos/ram/ || echo "/var/daos/ram/ unmounted"'
+#   run_clush_servers --dsh 'sudo systemctl start daos_server'
 #   # shellcheck disable=SC2016
-#   run_cmd_servers --dsh 'while /bin/netstat -an | /bin/grep \:10001 | /bin/grep -q LISTEN; [ $? -ne 0 ]; do let TRIES-=1; if [ $TRIES -gt 1 ]; then echo "waiting ${TRIES}"; sleep $WAIT;else echo "Timed out";break; fi;done'
+#   run_clush_servers --dsh 'while /bin/netstat -an | /bin/grep \:10001 | /bin/grep -q LISTEN; [ $? -ne 0 ]; do let TRIES-=1; if [ $TRIES -gt 1 ]; then echo "waiting ${TRIES}"; sleep $WAIT;else echo "Timed out";break; fi;done'
 #   log.info "Finished cleaning storage on DAOS servers"
 
 #   log.info "Restarting daos_agent service on DAOS client instances"
-#   run_cmd_clients'sudo systemctl restart daos_agent'
+#   run_clush_clients'sudo systemctl restart daos_agent'
 # }
 
 
@@ -321,13 +338,13 @@ main
 #     if use_old_cli; then
 #       # Use older DAOS v2.2.x dmg options
 #       daos container create --type=POSIX \
-#         --chunk-size="${DAOS_CHUNK_SIZE}" \
+#         --chunk-size="${DAOS_CONT_CHUNK_SIZE}" \
 #         --properties="${DAOS_CONT_REPLICATION_FACTOR}" \
 #         --label="${DAOS_CONT_NAME}" \
 #         "${DAOS_POOL_NAME}"
 #     else
 #       daos container create --type=POSIX \
-#         --chunk-size="${DAOS_CHUNK_SIZE}" \
+#         --chunk-size="${DAOS_CONT_CHUNK_SIZE}" \
 #         --properties="${DAOS_CONT_REPLICATION_FACTOR}" \
 #         "${DAOS_POOL_NAME}" \
 #         "${DAOS_CONT_NAME}"
@@ -343,13 +360,13 @@ main
 
 
 # run_io500() {
-#   log.debug "COMMAND: mpirun -np ${IO500_NP} -ppn ${IO500_PPN} --hostfile ${SCRIPT_DIR}/hosts_clients ${MPI_RUN_OPTS} ${IO500_DIR}/io500 temp.ini"
+#   log.debug "COMMAND: mpirun -np ${IO500_NP} -ppn ${IO500_PPN} --hostfile ${SCRIPT_DIR}/hosts_clients ${MPI_RUN_OPTS} ${DAOS_IO500_DIR}/io500 temp.ini"
 #   # shellcheck disable=SC2086
 #   mpirun -np ${IO500_NP} \
 #     -ppn ${IO500_PPN} \
 #     --hostfile "${SCRIPT_DIR}/hosts_clients" \
 #     $MPI_RUN_OPTS \
-#     "${IO500_DIR}/io500" \
+#     "${DAOS_IO500_DIR}/io500" \
 #     temp.ini
 #   log.info "IO500 run complete!"
 # }
@@ -360,7 +377,7 @@ main
 # }
 
 # process_results() {
-#   log.info "Copy results from ${IO500_RESULTS_DFUSE_DIR} to ${IO500_RESULTS_DIR_TIMESTAMPED}"
+#   log.info "Copy results from ${IO500_RESULTS_DIR} to ${IO500_RESULTS_DIR_TIMESTAMPED}"
 
 #   cp config.sh "${IO500_RESULTS_DIR_TIMESTAMPED}/"
 #   cp hosts* "${IO500_RESULTS_DIR_TIMESTAMPED}/"
@@ -388,7 +405,7 @@ main
 
 #   # Copy results from dfuse mount to another directory so we don't lose them
 #   # when the dfuse mount is removed
-#   rsync -avh "${IO500_RESULTS_DFUSE_DIR}/" "${IO500_RESULTS_DIR_TIMESTAMPED}/"
+#   rsync -avh "${IO500_RESULTS_DIR}/" "${IO500_RESULTS_DIR_TIMESTAMPED}/"
 #   cp temp.ini "${IO500_RESULTS_DIR_TIMESTAMPED}/"
 
 #   # Save output from "dmg pool query"
@@ -422,7 +439,7 @@ main
 #   log.section "Run IO500"
 #   run_io500
 #   process_results
-#   unmount_defuse
+#   unmount_dfuse_dir
 # }
 
 # main

@@ -23,6 +23,19 @@
     version: "{{ io500_version }}"
     force: true
 
+- name: Set permissions on IO500 directories
+  ansible.builtin.find:
+    paths: "{{ io500_path }}"
+    recurse: yes
+    file_type: directory
+  register: io500_directories
+
+- name: Set directory permissions to 0755
+  ansible.builtin.file:
+    path: "{{ item.path }}"
+    mode: '0755'
+  loop: "{{ io500_directories.files }}"
+
 - name: Run prepare.sh script
   ansible.builtin.shell: |
     export I_MPI_OFI_LIBRARY_INTERNAL=0

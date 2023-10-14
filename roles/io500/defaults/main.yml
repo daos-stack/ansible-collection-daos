@@ -34,3 +34,25 @@ io500_dtcmp_dir: "{{ io500_mfu_deps_dir }}/{{ io500_dtcmp_src_url | basename | r
 # # mpifileutils
 # io500_mpifileutils_repo_url: https://github.com/hpc/mpifileutils.git
 # io500_mpifileutils_src_dir: "{{ io500_mfu_src_dir }}/mpifileutils"
+
+io500_daos_pool_name: "io500_pool"
+io500_daos_container_name: "io500_cont"
+
+io500_cfg_global_datadir: "/datafiles"
+io500_cfg_global_timestamp_datadir: "TRUE"
+io500_cfg_global_resultdir:
+io500_cfg_global_timestamp_resultdir: "TRUE"
+io500_cfg_global_api: "DFS --dfs.pool={{ io500_daos_pool_name }} --dfs.cont={{ io500_daos_container_name }}"
+io500_cfg_global_drop_caches: "FALSE"
+io500_cfg_global_drop_caches_cmd: 'sudo -n bash -c "echo 3 > /proc/sys/vm/drop_caches"'
+io500_cfg_global_io_buffers_on_gpu: "FALSE"
+io500_cfg_global_verbosity: 1
+io500_cfg_global_scc: "FALSE"
+io500_cfg_debug_stonewall_time: 60
+
+io500_cfg_ior_easy_api: "DFS --dfs.pool=$DAOS_POOL --dfs.cont=$DAOS_CONT --dfs.dir_oclass=RP_2G1 --dfs.oclass=EC_8P1GX"
+io500_cfg_ior_easy_blockSize: "99000000m"
+io500_cfg_ior_easy_filePerProc: "FALSE"
+io500_cfg_ior_easy_run: "TRUE"
+io500_cfg_ior_easy_transferSize: "4m"
+io500_cfg_ior_easy_uniqueDir: "FALSE"
