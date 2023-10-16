@@ -18,90 +18,55 @@
 
 - name: install_redhat | Clone IO500 repo
   ansible.builtin.git:
-    repo: "{{ io500_src_repo_url }}"
+    repo: https://github.com/IO500/io500.git
     dest: "{{ io500_install_dir }}"
     version: "{{ io500_version }}"
     force: true
 
-- name: install_redhat | Update prepare.sh script
-  ansible.builtin.lineinfile:
-    path: "{{ io500_install_dir }}/prepare.sh"
-    regexp: "{{ item.regexp }}"
-    line: "{{ item.line }}"
-  loop:
-    - { regexp: "^PFIND_HASH=",
-        line: "PFIND_HASH=dfs_find" }
-    - { regexp: "^git_co https://github.com/VI4IO/pfind.git pfind $PFIND_HASH",
-        line: "git_co https://github.com/mchaarawi/pfind.git pfind $PFIND_HASH" }
-    - { regexp: "^./configure --prefix=.*",
-        line: "./configure --prefix=\"\$INSTALL_DIR\" --with-daos={{ io500_daos_install_dir }}" }
-
-- name: install_redhat | Update Makefile
-  ansible.builtin.lineinfile:
-    path: "{{ io500_install_dir }}/Makefile"
-    insertafter: "{{ item.insertafter }}"
-    line: "{{ item.line }}"
-  loop:
-    - { insertafter: "/CFLAGS += -std=gnu99.*",
-        line: "CFLAGS += -I{{ io500_daos_install_path }}/include" }
-    - { insertafter: "/LDFLAGS += -lm.*",
-        line: "LDFLAGS += -L\${MY_DAOS_INSTALL_PATH}/lib64 -ldaos -ldaos_common -ldfs -lgurt -luuid" }
-
-#- name: install_redhat | Run
-# - name: Set permissions on IO500 directories
+# - name: install_redhat | Set permissions on IO500 directories
 #   ansible.builtin.find:
 #     paths: "{{ io500_install_dir }}"
 #     recurse: yes
 #     file_type: directory
 #   register: io500_directories
 
-# - name: Set directory permissions to 0755
+# - name: install_redhat | Set directory permissions to 0755
 #   ansible.builtin.file:
 #     path: "{{ item.path }}"
 #     mode: '0755'
 #   loop: "{{ io500_directories.files }}"
 
-- name: Run prepare.sh script
+- name: install_redhat | Run prepare.sh script
   ansible.builtin.shell: |
     export I_MPI_OFI_LIBRARY_INTERNAL=0
     export I_MPI_OFI_PROVIDER="tcp;ofi_rxm"
-    export PATH=$PATH:"{{ io500_install_dir }}/bin"
-    export FI_UNIVERSE_SIZE=16383
-    export FI_OFI_RXM_USE_SRX=1
     source /opt/intel/oneapi/setvars.sh
-    "{{ io500_path }}/prepare.sh"
+    "{{ io500_install_dir }}/prepare.sh"
   args:
     chdir: "{{ io500_install_dir }}"
     executable: /bin/bash
+    creates: "{{ io500_install_dir }}/io500.sh"
 
-- name: Create io500_ini directory
-  ansible.builtin.file:
-    path: "{{ io500_run_io500_path | dirname }}/io500_ini"
-    state: directory
-    owner: "{{ io500_admin_username }}"
-    group: "{{ io500_admin_username }}"
-    mode: '0755'
-
-- name: Copy io500 ini files
-  ansible.builtin.copy:
-    src: "io500_ini"
-    dest: "{{ io500_run_io500_path | dirname }}"
-    owner: "{{ io500_admin_username }}"
-    group: "{{ io500_admin_username }}"
-    mode: '0644'
-
-# - name: Copy run_io500.sh script
-#   ansible.builtin.template:
-#     src: run_io500.sh.j2
-#     dest: "{{ io500_run_io500_path }}"
-#     owner: "{{ io500_admin_username }}"
-#     group: "{{ io500_admin_username }}"
+# - name: install_redhat | Create io500_ini directory
+#   ansible.builtin.file:
+#     path: "{{ io500_script_dir }}/io500_ini"
+#     state: directory
+#     owner: "{{ io500_user }}"
+#     group: "{{ io500_user }}"
 #     mode: '0755'
 
+- name: install_redhat | Copy io500 ini files
+  ansible.builtin.copy:
+    src: "io500_ini"
+    dest: "{{ io500_script_dir }}"
+    owner: "{{ io500_user }}"
+    group: "{{ io500_user }}"
+    mode: '0644'
+
 - name: Copy run_io500.sh script
-  ansible.builtin.file:
+  ansible.builtin.copy:
     src: run_io500.sh
     dest: "{{ io500_script_dir }}/run_io500.sh"
-    owner: "{{ io500_admin_username }}"
-    group: "{{ io500_admin_username }}"
+    owner: "{{ io500_user }}"
+    group: "{{ io500_user }}"
     mode: '0755'

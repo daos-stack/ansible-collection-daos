@@ -29,7 +29,7 @@ trap 'echo "An error occurred. Unmounting and exiting."; unmount' ERR
 SCRIPT_DIR=$(cd "$(dirname "${BASH_SOURCE[0]}")" &>/dev/null && pwd -P)
 
 DAOS_IO500_VERSION_TAG="{{ io500_version }}"
-DAOS_IO500_DIR="${IO500_DIR:="{{ io500_path }}"}"
+DAOS_IO500_DIR="${IO500_DIR:="{{ io500_install_dir }}"}"
 
 DAOS_IO500_STONEWALL_TIME="${IO500_STONEWALL_TIME:-5}"
 
