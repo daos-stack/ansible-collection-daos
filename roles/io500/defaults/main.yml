@@ -1,14 +1,16 @@
 ---
 # defaults file for io500
 
-io500_admin_username: daos_admin
-io500_version: io500-sc22
-io500_path: "/opt/{{ io500_version }}"
-io500_run_io500_path: "/home/daos_admin/run_io500.sh"
-io500_tools_dir: /usr/local/tools
+io500_version: io500-sc23
+io500_install_dir: "/opt/{{ io500-sc23 }}"
+io500_src_repo_url: https://github.com/IO500/io500.git
+io500_daos_install_dir: "/usr/lib64"
+io500_user: daos_admin
+io500_script_dir: "/home/{{ io500_user }}"
+io500_tools_dir: "/usr/local/tools"
 
 # cmake
-io500_cmake_version: 3.24.2
+io500_cmake_version: "v3.27.7"
 io500_cmake_installer_script: "cmake-{{ io500_cmake_version }}-linux-x86_64.sh"
 io500_cmake_installer_url: "https://github.com/Kitware/CMake/releases/download/v{{ io500_cmake_version }}/{{ io500_cmake_installer_script }}"
 
