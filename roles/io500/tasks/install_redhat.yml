@@ -20,6 +20,11 @@
     group: "{{ io500_user }}"
     mode: '0644'
 
+- name: install_redhat | Run io500_install.sh
+  ansible.builtin.command: "{{ io500_dir }}/io500_install.sh"
+  args:
+    creates: "{{ io500_install_dir }}/io500"
+
 - name: install_redhat | Copy config-full.ini.envtpl
   ansible.builtin.copy:
     src: "{{ io500_version }}.config-full.ini.envtpl"
@@ -27,6 +32,3 @@
     owner: "root"
     group: "root"
     mode: '0644'
-
-- name: install_redhat | Run io500_install.sh
-  ansible.builtin.command: "{{ io500_dir }}/io500_install.sh"
