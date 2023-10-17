@@ -1,72 +1,32 @@
 ---
 # redhat OS family tasks for io500
 
-- name: install_redhat | Install the 'Development tools' group
-  ansible.builtin.package:
-    name: "@Development tools"
-    state: present
-
-- name: install_redhat | Install dependecies
-  ansible.builtin.package:
-    name: "{{ io500_dep_pkgs }}"
-    state: present
-
-- name: install_redhat | Install daos-devel
-  ansible.builtin.package:
-    name: "daos-devel"
-    state: present
-
-- name: install_redhat | Clone IO500 repo
-  ansible.builtin.git:
-    repo: https://github.com/IO500/io500.git
-    dest: "{{ io500_install_dir }}"
-    version: "{{ io500_version }}"
-    force: true
-
-# - name: install_redhat | Set permissions on IO500 directories
-#   ansible.builtin.find:
-#     paths: "{{ io500_install_dir }}"
-#     recurse: yes
-#     file_type: directory
-#   register: io500_directories
-
-# - name: install_redhat | Set directory permissions to 0755
-#   ansible.builtin.file:
-#     path: "{{ item.path }}"
-#     mode: '0755'
-#   loop: "{{ io500_directories.files }}"
-
-- name: install_redhat | Run prepare.sh script
-  ansible.builtin.shell: |
-    export I_MPI_OFI_LIBRARY_INTERNAL=0
-    export I_MPI_OFI_PROVIDER="tcp;ofi_rxm"
-    source /opt/intel/oneapi/setvars.sh
-    "{{ io500_install_dir }}/prepare.sh"
-  args:
-    chdir: "{{ io500_install_dir }}"
-    executable: /bin/bash
-    creates: "{{ io500_install_dir }}/io500.sh"
-
-# - name: install_redhat | Create io500_ini directory
-#   ansible.builtin.file:
-#     path: "{{ io500_script_dir }}/io500_ini"
-#     state: directory
-#     owner: "{{ io500_user }}"
-#     group: "{{ io500_user }}"
-#     mode: '0755'
-
-- name: install_redhat | Copy io500 ini files
+- name: install_redhat | Copy io500 scripts
   ansible.builtin.copy:
-    src: "io500_ini"
-    dest: "{{ io500_script_dir }}"
+    src: "{{ item }}"
+    dest: "{{ io500_dir }}"
+    owner: "{{ io500_user }}"
+    group: "{{ io500_user }}"
+    mode: '0755'
+  loop:
+    - io500_install.sh
+    - io500_run.sh
+
+- name: install_redhat | Copy io500.env file
+  ansible.builtin.copy:
+    src: "io500.env"
+    dest: "{{ io500_dir }}"
     owner: "{{ io500_user }}"
     group: "{{ io500_user }}"
     mode: '0644'
 
-- name: Copy run_io500.sh script
+- name: install_redhat | Copy config-full.ini.envtpl
   ansible.builtin.copy:
-    src: run_io500.sh
-    dest: "{{ io500_script_dir }}/run_io500.sh"
-    owner: "{{ io500_user }}"
-    group: "{{ io500_user }}"
-    mode: '0755'
+    src: "{{ io500_version }}.config-full.ini.envtpl"
+    dest: "{{ io500_install_dir }}/{{ io500_version }}.config-full.ini.envtpl"
+    owner: "root"
+    group: "root"
+    mode: '0644'
+
+- name: install_redhat | Run io500_install.sh
+  ansible.builtin.command: "{{ io500_dir }}/io500_install.sh"

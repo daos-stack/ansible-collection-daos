@@ -1,6 +1,6 @@
 galaxy_info:
   author: daos-stack
-  description: Installs and runs IO500 benchmark
+  description: Installs IO500 benchmark scripts
   company: Intel Corporation
   issue_tracker_url: https://daosio.atlassian.net/jira/software/c/projects/DAOS/issues
 

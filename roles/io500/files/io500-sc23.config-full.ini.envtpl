@@ -1,0 +1,50 @@
+#
+# io500-sc23.config-full.ini.envtpl
+#
+
+[global]
+datadir = $DAOS_IO500_DFUSE_DATA_DIR
+timestamp-datadir = TRUE
+resultdir = $DAOS_IO500_RESULTS_DIR
+timestamp-resultdir = TRUE
+api = DFS --dfs.pool=$DAOS_POOL --dfs.cont=$DAOS_CONT
+drop-caches = $DAOS_IO500_GLOBAL_DROP_CACHES
+drop-caches-cmd = sudo -n bash -c "echo 3 > /proc/sys/vm/drop_caches"
+io-buffers-on-gpu = FALSE
+verbosity = $DAOS_IO500_GLOBAL_VERBOSITY
+scc = FALSE
+
+[debug]
+stonewall-time = $DAOS_IO500_STONEWALL_TIME
+
+[ior-easy]
+API = DFS --dfs.pool=$DAOS_POOL --dfs.cont=$DAOS_CONT --dfs.dir_oclass=$DAOS_IO500_IOR_EASY_DIR_OCLASS --dfs.oclass=$DAOS_IO500_IOR_EASY_OCLASS
+transferSize = $DAOS_IO500_IOR_EASY_TRANSFERSIZE
+blockSize = $DAOS_IO500_IOR_EASY_BLOCKSIZE
+filePerProc = FALSE
+uniqueDir = FALSE
+run = $DAOS_IO500_IOR_EASY_RUN
+verbosity =
+
+[mdtest-easy]
+API = DFS --dfs.pool=$DAOS_POOL --dfs.cont=$DAOS_CONT --dfs.dir_oclass=$DAOS_IO500_MDTEST_EASY_DIR_OCLASS --dfs.oclass=$DAOS_IO500_MDTEST_EASY_OCLASS
+n = 10000000
+run = $DAOS_IO500_MDTEST_EASY_RUN
+
+[timestamp]
+
+[ior-hard]
+API = DFS --dfs.pool=$DAOS_POOL --dfs.cont=$DAOS_CONT --dfs.chunk_size=$DAOS_IO500_IOR_HARD_CHUNK_SIZE --dfs.dir_oclass=$DAOS_IO500_IOR_HARD_DIR_OCLASS --dfs.oclass=$DAOS_IO500_IOR_HARD_OCLASS
+segmentCount = 10000000
+run = TRUE
+verbosity =
+
+[mdtest-hard]
+API = DFS --dfs.pool=$DAOS_POOL --dfs.cont=$DAOS_CONT --dfs.dir_oclass=$DAOS_IO500_MDTEST_HARD_DIR_OCLASS --dfs.oclass=$DAOS_IO500_MDTEST_HARD_OCLASS
+n = 1000000
+files-per-dir =
+run = $DAOS_IO500_MDTEST_HARD_RUN
+
+[find]
+nproc = $DAOS_IO500_NPROC
+run = $DAOS_IO500_FIND_RUN
