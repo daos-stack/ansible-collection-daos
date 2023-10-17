@@ -24,26 +24,16 @@ SCRIPT_DIR=$(cd "$(dirname "${BASH_SOURCE[0]}")" &>/dev/null && pwd -P)
 SCRIPT_FILE=$(basename "${BASH_SOURCE[0]}")
 TIMESTAMP=$(date "+%Y-%m-%d_%H%M%S")
 RUN_ID=$(uuidgen | tr 'a-f' 'A-F')
+RUN_LOG="${SCRIPT_DIR}/${SCRIPT_FILE%.*}.${TIMESTAMP}.log"
 
 exec 3>&1
-exec > >(tee ${SCRIPT_DIR}/${SCRIPT_FILE%.*}.${TIMESTAMP}.log) 2>&1
+exec > >(tee "${RUN_LOG}") 2>&1
 
 DEFAULT_ENV_FILE="${SCRIPT_DIR}/io500.env"
 
 : "${DAOS_IO500_ENV_FILE:="${DEFAULT_ENV_FILE}"}"
 : "${DAOS_SERVER_HOSTS_FILE:="${SCRIPT_DIR}/hosts_servers"}"
 : "${DAOS_CLIENT_HOSTS_FILE:="${SCRIPT_DIR}/hosts_clients"}"
-
-# : "${DAOS_IO500_DFUSE_DIR:="${HOME}/dfuse/${DAOS_IO500_VERSION_TAG}"}"
-# : "${DAOS_IO500_DFUSE_DATA_DIR:="${DAOS_IO500_DFUSE_DIR}/datafiles"}"
-# : "${DAOS_IO500_RESULTS_DIR:="${HOME}/${DAOS_IO500_VERSION_TAG}/results"}"
-
-# : "${DAOS_IO500_INI:="${HOME}/io500_ini/io500-sc23.config.ini.envtpl"}"
-# : "${DAOS_IO500_STONEWALL_TIME:=30}"
-# : "${DAOS_POOL:="io500_pool"}"
-# : "${DAOS_CONT:="io500_cont"}"
-# : "${DAOS_CONT_REPLICATION_FACTOR:="rf:0"}"
-# : "${DAOS_CHUNK_SIZE:=1048576}"
 
 # BEGIN: Logging
 : "${DAOS_AZ_LOG_LEVEL:="INFO"}"
@@ -314,8 +304,89 @@ run_io500() {
     --hostfile "${DAOS_CLIENT_HOSTS_FILE}" \
     $MPI_RUN_OPTS \
     "${DAOS_IO500_INSTALL_DIR}/io500" \
-    "${DAOS_IO500_INI}"
+    "${DAOS_IO500_INI}" \
+    --timestamp "${TIMESTAMP}"
   log.info "IO500 run complete!"
+}
+
+print_result_value() {
+  local summary_file="$1"
+  local metric="$2"
+  local metric_line
+  metric_line=$(grep "${metric}" "${summary_file}")
+  local metric_value
+  metric_value=$(echo "${metric_line}" | awk '{print $3}')
+  local metric_measurment
+  metric_measurment=$(echo "${metric_line}" | awk '{print $4}')
+  local metric_time_secs
+  metric_time_secs=$(echo "${metric_line}" | awk '{print $7}')
+  printf "%s,%s,%s,%s,%s,%s,%s\n" "${DAOS_IO500_TEST_CONFIG_ID}" "${RUN_ID}" "${TIMESTAMP}" "${metric}" "${metric_value}" "${metric_measurment}" "${metric_time_secs}"
+}
+
+print_results() {
+  local result_summary_file=$1
+  local timestamp=$2
+  print_result_value "${result_summary_file}" "ior-easy-write" "${timestamp}"
+  print_result_value "${result_summary_file}" "mdtest-easy-write" "${timestamp}"
+  print_result_value "${result_summary_file}" "ior-hard-write" "${timestamp}"
+  print_result_value "${result_summary_file}" "mdtest-hard-write" "${timestamp}"
+  print_result_value "${result_summary_file}" "find" "${timestamp}"
+  print_result_value "${result_summary_file}" "ior-easy-read" "${timestamp}"
+  print_result_value "${result_summary_file}" "mdtest-easy-stat" "${timestamp}"
+  print_result_value "${result_summary_file}" "ior-hard-read" "${timestamp}"
+  print_result_value "${result_summary_file}" "mdtest-hard-stat" "${timestamp}"
+  print_result_value "${result_summary_file}" "mdtest-easy-delete" "${timestamp}"
+  print_result_value "${result_summary_file}" "mdtest-hard-read" "${timestamp}"
+  print_result_value "${result_summary_file}" "mdtest-hard-delete" "${timestamp}"
+
+  #print bandwidth line
+  local bandwidth_line
+  bandwidth_line="$(grep 'SCORE' "${result_summary_file}" | cut -d ':' -f 1 | sed 's/\[SCORE \] //g' | sed 's/ /,/g')"
+  printf "%s,%s,%s,%s\n" "${DAOS_IO500_TEST_CONFIG_ID}" "${RUN_ID}" "${TIMESTAMP}" "${bandwidth_line}"
+
+  local iops_line
+  iops_line="$(grep 'SCORE' "${result_summary_file}" | sed 's/\[SCORE \] //g' | cut -d ':' -f 2 | awk '{$1=$1;print}' | sed 's/ /,/g')"
+  printf "%s,%s,%s,%s\n" "${DAOS_IO500_TEST_CONFIG_ID}" "${RUN_ID}" "${TIMESTAMP}"   "${iops_line}"
+
+  local total_line
+  total_line="$(grep 'SCORE' "${result_summary_file}" | sed 's/\[SCORE \] //g' | cut -d ':' -f 3 | awk '{$1=$1;print}' | sed 's/ \[INVALID\]//g' | sed 's/ /,/g')"
+  printf "%s,%s,%s,%s\n" "${DAOS_IO500_TEST_CONFIG_ID}" "${RUN_ID}" "${TIMESTAMP}"   "${total_line}"
+}
+
+process_results() {
+  local timestamp_results_dir="${DAOS_IO500_RESULTS_DIR}/${TIMESTAMP}"
+  echo "${RUN_ID}" > "${timestamp_results_dir}/run_id.txt"
+  echo "${TIMESTAMP}" > "${timestamp_results_dir}/timestamp.txt"
+  cp "${DAOS_IO500_INI}" "${timestamp_results_dir}/"
+  cp "${DAOS_CLIENT_HOSTS_FILE}" "${timestamp_results_dir}/"
+  cp "${DAOS_SERVER_HOSTS_FILE}" "${timestamp_results_dir}/"
+  cp /etc/os-release "${timestamp_results_dir}/"
+
+  sudo cat /proc/cmdline > "${timestamp_results_dir}/proc_cmdline.txt"
+  sudo sudo lshw > "${timestamp_results_dir}/lshow.txt"
+  sudo dmidecode -t bios > "${timestamp_results_dir}/dmidecode.txt"
+  sudo dmidecode -t system >> "${timestamp_results_dir}/dmidecode.txt"
+  sudo dmidecode -t baseboard >> "${timestamp_results_dir}/dmidecode.txt"
+  sudo dmidecode -t chassis >> "${timestamp_results_dir}/dmidecode.txt"
+  sudo dmidecode -t processor >> "${timestamp_results_dir}/dmidecode.txt"
+  sudo dmidecode -t memory >> "${timestamp_results_dir}/dmidecode.txt"
+  sudo dmidecode -t cache >> "${timestamp_results_dir}/dmidecode.txt"
+  sudo dmidecode -t connector >> "${timestamp_results_dir}/dmidecode.txt"
+  sudo dmidecode -t slot >> "${timestamp_results_dir}/dmidecode.txt"
+
+  local result_summary_file="${timestamp_results_dir}/result_summary.txt"
+  print_results "${result_summary_file}" "${TIMESTAMP}" > "${timestamp_results_dir}/result_summary.csv"
+
+  mkdir -p "${timestamp_results_dir}/server_configs"
+  local first_server=$(head -n 1 "${DAOS_SERVER_HOSTS_FILE}")
+  scp -r "${first_server}":"/etc/daos/*.yml" "${timestamp_results_dir}/server_configs/"
+
+  mkdir -p "${timestamp_results_dir}/client_configs"
+  cp -r /etc/daos/*.yml "${timestamp_results_dir}/client_configs/"
+
+  cp "${RUN_LOG}" "${timestamp_results_dir}/"
+  cd "${DAOS_IO500_RESULTS_DIR}"
+  tar -cvzf "${DAOS_IO500_RESULTS_DIR}/${DAOS_IO500_VERSION}_${TIMESTAMP}.tar.gz" "${TIMESTAMP}"
 }
 
 main() {
@@ -334,148 +405,7 @@ main() {
   create_container
   mount_dfuse
   run_io500
+  process_results
 }
 
 main
-
-# # cleanup() {
-# # #   log.info "Clean up DAOS storage"
-# # #   unmount_dfuse
-# # #   "${SCRIPT_DIR}/clean_storage.sh"
-
-# #   log.info "Clean DAOS storage"
-# #   run_cmd_servers --dsh 'sudo systemctl stop daos_server'
-# #   run_cmd_servers --dsh 'sudo rm -rf /var/daos/ram/*'
-# #   run_cmd_servers --dsh 'sudo rm -rf /var/daos/*.log'
-# #   run_cmd_servers --dsh '[[ -d /var/daos/ram ]] && sudo umount /var/daos/ram/ || echo "/var/daos/ram/ unmounted"'
-# #   run_cmd_servers --dsh 'sudo systemctl start daos_server'
-# #   # shellcheck disable=SC2016
-# #   run_cmd_servers --dsh 'while /bin/netstat -an | /bin/grep \:10001 | /bin/grep -q LISTEN; [ $? -ne 0 ]; do let TRIES-=1; if [ $TRIES -gt 1 ]; then echo "waiting ${TRIES}"; sleep $WAIT;else echo "Timed out";break; fi;done'
-# #   log.info "Finished cleaning storage on DAOS servers"
-
-# #   log.info "Restarting daos_agent service on DAOS client instances"
-# #   run_cmd_clients'sudo systemctl restart daos_agent'
-# # }
-
-
-# # use_old_cli() {
-# #   local daos_version
-# #   daos_version=$(rpm -q --queryformat '%{VERSION}' daos)
-# #   awk 'BEGIN{if(ARGV[1]<ARGV[2])exit 0;exit 1;}' "${daos_version}" "2.3"
-# #   return $?
-# # }
-
-
-
-# # create_container() {
-# #   log.info "Create container: label=${DAOS_CONT}"
-
-# #   if ! daos container list "${DAOS_POOL}" | grep -q "${DAOS_CONT}"; then
-# #     if use_old_cli; then
-# #       # Use older DAOS v2.2.x dmg options
-# #       daos container create --type=POSIX \
-# #         --chunk-size="${DAOS_CHUNK_SIZE}" \
-# #         --properties="${DAOS_CONT_REPLICATION_FACTOR}" \
-# #         --label="${DAOS_CONT}" \
-# #         "${DAOS_POOL}"
-# #     else
-# #       daos container create --type=POSIX \
-# #         --chunk-size="${DAOS_CHUNK_SIZE}" \
-# #         --properties="${DAOS_CONT_REPLICATION_FACTOR}" \
-# #         "${DAOS_POOL}" \
-# #         "${DAOS_CONT}"
-# #     fi
-# #   fi
-
-# #   log.info "Show container properties"
-# #   daos cont get-prop "${DAOS_POOL}" "${DAOS_CONT}"
-# # }
-
-
-
-
-
-# # run_io500() {
-# #   log.debug "COMMAND: mpirun -np ${IO500_NP} -ppn ${IO500_PPN} --hostfile ${SCRIPT_DIR}/hosts_clients ${MPI_RUN_OPTS} ${IO500_DIR}/io500 temp.ini"
-# #   # shellcheck disable=SC2086
-# #   mpirun -np ${IO500_NP} \
-# #     -ppn ${IO500_PPN} \
-# #     --hostfile "${SCRIPT_DIR}/hosts_clients" \
-# #     $MPI_RUN_OPTS \
-# #     "${IO500_DIR}/io500" \
-# #     temp.ini
-# #   log.info "IO500 run complete!"
-# # }
-
-# # show_pool_state() {
-# #   log.info "Query pool state"
-# #   dmg pool query "${DAOS_POOL}"
-# # }
-
-# # process_results() {
-# #   log.info "Copy results from ${IO500_RESULTS_DFUSE_DIR} to ${IO500_RESULTS_DIR_TIMESTAMPED}"
-
-# #   cp config.sh "${IO500_RESULTS_DIR_TIMESTAMPED}/"
-# #   cp hosts* "${IO500_RESULTS_DIR_TIMESTAMPED}/"
-
-# #   echo "${TIMESTAMP}" >"${IO500_RESULTS_DIR_TIMESTAMPED}/io500_run_timestamp.txt"
-
-# #   FIRST_SERVER=$(echo "${DAOS_SERVER_LIST}" | cut -d, -f1)
-# #   ssh "${FIRST_SERVER}" 'daos_server version' > \
-# #     "${IO500_RESULTS_DIR_TIMESTAMPED}/daos_server_version.txt"
-
-# #   RESULT_SERVER_FILES_DIR="${IO500_RESULTS_DIR_TIMESTAMPED}/server_files"
-# #   # shellcheck disable=SC2013
-# #   for server in $(cat hosts_servers); do
-# #     SERVER_FILES_DIR="${RESULT_SERVER_FILES_DIR}/${server}"
-# #     mkdir -p "${SERVER_FILES_DIR}/etc/daos"
-# #     scp "${server}:/etc/daos/*.yaml" "${SERVER_FILES_DIR}/etc/daos/"
-# #     scp "${server}:/etc/daos/*.yml" "${SERVER_FILES_DIR}/etc/daos/"
-# #     mkdir -p "${SERVER_FILES_DIR}/var/daos"
-# #     scp "${server}:/var/daos/*.log*" "${SERVER_FILES_DIR}/var/daos/"
-# #     ssh "${server}" 'daos_server version' >"${SERVER_FILES_DIR}/daos_server_version.txt"
-# #   done
-
-# #   # Save a copy of the environment variables for the IO500 run
-# #   printenv | sort >"${IO500_RESULTS_DIR_TIMESTAMPED}/env.sh"
-
-# #   # Copy results from dfuse mount to another directory so we don't lose them
-# #   # when the dfuse mount is removed
-# #   rsync -avh "${IO500_RESULTS_DFUSE_DIR}/" "${IO500_RESULTS_DIR_TIMESTAMPED}/"
-# #   cp temp.ini "${IO500_RESULTS_DIR_TIMESTAMPED}/"
-
-# #   # Save output from "dmg pool query"
-# #   # shellcheck disable=SC2024
-# #   dmg pool query "${DAOS_POOL}" > \
-# #     "${IO500_RESULTS_DIR_TIMESTAMPED}/dmg_pool_query_${DAOS_POOL}.txt"
-
-# #   log.info "Results files located in ${IO500_RESULTS_DIR_TIMESTAMPED}"
-
-# #   RESULTS_TAR_FILE="${IO500_TEST_CONFIG_ID}_${TIMESTAMP}.tar.gz"
-
-# #   log.info "Creating '${HOME}/${RESULTS_TAR_FILE}' file with contents of ${IO500_RESULTS_DIR_TIMESTAMPED} directory"
-# #   pushd "${IO500_RESULTS_DIR_TIMESTAMPED}"
-# #   tar -czf "${HOME}/${RESULTS_TAR_FILE}" ./
-# #   log.info "Results tar file: ${HOME}/${RESULTS_TAR_FILE}"
-# #   popd
-# # }
-
-# # main() {
-# #   log.section "Prepare for IO500 run"
-# #   log.debug.show_vars
-# #   fix_admin_cert_permissions
-# #   cleanup
-# #   storage_scan
-# #   format_storage
-# #   show_storage_usage
-# #   create_pool
-# #   create_container
-# #   mount_dfuse
-# #   io500_create_ini
-# #   log.section "Run IO500"
-# #   run_io500
-# #   process_results
-# #   unmount_dfuse
-# # }
-
-# # main
