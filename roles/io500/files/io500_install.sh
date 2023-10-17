@@ -138,6 +138,8 @@ run_prepare() {
   export PATH=$PATH:"${DAOS_IO500_INSTALL_DIR}/bin"
   cd "${DAOS_IO500_INSTALL_DIR}"
   ./prepare.sh
+  find "${DAOS_IO500_INSTALL_DIR}" -type d -exec chmod 755 {} \;
+  find "${DAOS_IO500_INSTALL_DIR}" -type f -exec chmod g=u,o=u {} + -exec chmod o-w {} +
 }
 
 main() {
