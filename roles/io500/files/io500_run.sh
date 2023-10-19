@@ -320,7 +320,7 @@ print_result_value() {
   metric_measurment=$(echo "${metric_line}" | awk '{print $4}')
   local metric_time_secs
   metric_time_secs=$(echo "${metric_line}" | awk '{print $7}')
-  printf "%s,%s,%s,%s,%s,%s,%s\n" "${DAOS_IO500_TEST_CONFIG_ID}" "${RUN_ID}" "${TIMESTAMP}" "${metric}" "${metric_value}" "${metric_measurment}" "${metric_time_secs}"
+  printf "%s,%s,%s,%s,%s,%s,%s\n" "${DAOS_IO500_TEST_CONFIG_NAME}" "${RUN_ID}" "${TIMESTAMP}" "${metric}" "${metric_value}" "${metric_measurment}" "${metric_time_secs}"
 }
 
 print_results() {
@@ -342,15 +342,15 @@ print_results() {
   #print bandwidth line
   local bandwidth_line
   bandwidth_line="$(grep 'SCORE' "${result_summary_file}" | cut -d ':' -f 1 | sed 's/\[SCORE \] //g' | sed 's/ /,/g')"
-  printf "%s,%s,%s,%s\n" "${DAOS_IO500_TEST_CONFIG_ID}" "${RUN_ID}" "${TIMESTAMP}" "${bandwidth_line}"
+  printf "%s,%s,%s,%s\n" "${DAOS_IO500_TEST_CONFIG_NAME}" "${RUN_ID}" "${TIMESTAMP}" "${bandwidth_line}"
 
   local iops_line
   iops_line="$(grep 'SCORE' "${result_summary_file}" | sed 's/\[SCORE \] //g' | cut -d ':' -f 2 | awk '{$1=$1;print}' | sed 's/ /,/g')"
-  printf "%s,%s,%s,%s\n" "${DAOS_IO500_TEST_CONFIG_ID}" "${RUN_ID}" "${TIMESTAMP}"   "${iops_line}"
+  printf "%s,%s,%s,%s\n" "${DAOS_IO500_TEST_CONFIG_NAME}" "${RUN_ID}" "${TIMESTAMP}"   "${iops_line}"
 
   local total_line
   total_line="$(grep 'SCORE' "${result_summary_file}" | sed 's/\[SCORE \] //g' | cut -d ':' -f 3 | awk '{$1=$1;print}' | sed 's/ \[INVALID\]//g' | sed 's/ /,/g')"
-  printf "%s,%s,%s,%s\n" "${DAOS_IO500_TEST_CONFIG_ID}" "${RUN_ID}" "${TIMESTAMP}"   "${total_line}"
+  printf "%s,%s,%s,%s\n" "${DAOS_IO500_TEST_CONFIG_NAME}" "${RUN_ID}" "${TIMESTAMP}"   "${total_line}"
 }
 
 process_results() {
@@ -386,7 +386,10 @@ process_results() {
 
   cp "${RUN_LOG}" "${timestamp_results_dir}/"
   cd "${DAOS_IO500_RESULTS_DIR}"
-  tar -cvzf "${DAOS_IO500_RESULTS_DIR}/${DAOS_IO500_VERSION}_${TIMESTAMP}.tar.gz" "${TIMESTAMP}"
+
+  local results_archive_file="${DAOS_IO500_RESULTS_DIR}/${DAOS_IO500_VERSION}_${TIMESTAMP}.tar.gz"
+  tar -czf "${results_archive_file}" "${TIMESTAMP}"
+  log.info "Results archive: ${results_archive_file}"
 }
 
 main() {
