@@ -136,6 +136,8 @@ daos_server_crt_timeout: 60
 daos_server_nr_hugepages: 0
 daos_server_disable_hugepages: "false"
 daos_server_control_log_mask: "INFO"
+daos_server_control_metadata_path: /var/daos/metadata
+daos_server_control_metadata_device: "{{ None }}"
 daos_server_log_dir: /var/daos
 daos_server_control_log_file: "{{ daos_server_log_dir }}/daos_server.log"
 daos_server_helper_log_file: "{{ daos_server_log_dir }}/daos_admin.log"
