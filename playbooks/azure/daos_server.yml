@@ -97,7 +97,7 @@
         daos_access_points: "{{ daos_server_vmss_instance_info.instances | map(attribute='computer_name') | list | daos_stack.daos.daos_access_points }}"
         daos_server_engines:
           - targets: 2
-            nr_xs_helpers: 4
+            nr_xs_helpers: 0
             bypass_health_chk: "true"
             fabric_iface: "{{ ansible_default_ipv4.interface }}"
             fabric_iface_port: 31316
