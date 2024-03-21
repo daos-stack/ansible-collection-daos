@@ -112,6 +112,7 @@
                 class: ram
               - class: nvme
                 bdev_list: "{{ daos_server_bdev_list | to_json }}"
+                bdev_roles: [wal, meta, data]
 
     - name: daos_server | Import daos_certs role
       import_role:
