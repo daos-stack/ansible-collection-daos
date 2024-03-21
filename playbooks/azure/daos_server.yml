@@ -1,4 +1,7 @@
 ---
+# playbook:     daos_server.yml
+# playbook_fqn: daos_stack.daos.azure.daos_server
+
 - name: daos_server | Install and configure DAOS server
   hosts: "{{ target | default('localhost') }}"
   gather_facts: true
@@ -116,8 +119,8 @@
       vars:
         daos_certs_store_type: azure_key_vault
         daos_certs_az_vault_name: "{{ az_vault_name }}"
-        daos_certs_generate: "{{ ansible_hostname == daos_server_first_host_name }}"
-        daos_certs_store_push_enabled: "{{ ansible_hostname == daos_server_first_host_name }}"
+        daos_certs_generate: "{{ ansible_hostname == daos_server_vmss_instance_info.instances[0].computer_name }}"
+        daos_certs_store_push_enabled: "{{ ansible_hostname == daos_server_vmss_instance_info.instances[0].computer_name }}"
         daos_certs_store_pull_enabled: true
 
     - name: daos_server | Import daos_storage role
@@ -126,7 +129,7 @@
       vars:
         daos_storage_server_host_list: "{{ daos_server_vmss_instance_info.instances }}"
         daos_storage_do_format: true
-        daos_storage_do_management: "{{ ansible_hostname == daos_server_first_host_name }}"
+        daos_storage_do_management: "{{ ansible_hostname == daos_server_vmss_instance_info.instances[0].computer_name }}"
         daos_pools:
           - label: pool1
             size: '100%'
