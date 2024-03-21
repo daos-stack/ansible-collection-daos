@@ -1,5 +1,6 @@
 #
 # {{ ansible_managed }}
+# daos role template: etc/daos/latest/daos_server.yml
 #
 # DAOS server configuration file.
 #
@@ -45,13 +46,15 @@ access_points:
 ## Define a directory or partition/mountpoint to be used as the storage location for
 ## control plane metadata. The location specified should be persistent across reboots.
 #
-#control_metadata:
+control_metadata:
 #  # Directory to store control plane metadata.
 #  # If device is also defined, this path will be used as the mountpoint.
-#  path: /home/daos_server/control_meta
+  path: {{ daos_server_control_metadata_path }}
 #  # Storage partition to be formatted with an ext4 filesystem and mounted for
 #  # control plane metadata storage.
-#  device: /dev/sdb1
+{% if not daos_server_control_metadata_device is None %}
+  device: {{ daos_server_control_metadata_device }}
+{% endif %}
 #
 #
 ## Default control plane port
