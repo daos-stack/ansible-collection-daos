@@ -52,7 +52,7 @@ control_metadata:
   path: {{ daos_server_control_metadata_path }}
 #  # Storage partition to be formatted with an ext4 filesystem and mounted for
 #  # control plane metadata storage.
-{% if not daos_server_control_metadata_device is None %}
+{% if daos_server_control_metadata_device is defined %}
   device: {{ daos_server_control_metadata_device }}
 {% endif %}
 #
