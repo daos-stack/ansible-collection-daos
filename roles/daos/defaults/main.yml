@@ -2,7 +2,7 @@
 # defaults for the daos role
 
 # Version of DAOS to install
-daos_version: 2.4.0
+daos_version: 2.6.0
 
 # URLs for repos
 daos_repo_base_url: https://packages.daos.io
