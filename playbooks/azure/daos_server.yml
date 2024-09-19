@@ -64,6 +64,10 @@
       register: daos_server_lspci_output
       changed_when: false
 
+    - name: daos_server | DEBUG daos_server_lspci_output
+      ansible.builtin.debug:
+        var: daos_server_lspci_output
+
     - name: daos_server | Add localhost to the inventory groups
       add_host:
         name: localhost
