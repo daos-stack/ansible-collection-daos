@@ -60,7 +60,7 @@
       register: daos_server_vmss_instance_info
 
     - name: daos_server | Get bdev addresses
-      ansible.builtin.shell: "lspci | grep 'Non-Volatile memory controller' | awk '{print $1}'"
+      ansible.builtin.shell: "/sbin/lspci | grep 'Non-Volatile memory controller' | awk '{print $1}'"
       register: daos_server_lspci_output
       changed_when: false
 
