@@ -68,6 +68,7 @@ _packages_common:
     - nfs-utils
     - nmap
     - nmap-ncat
+    - pciutils
     - psmisc
     - rsync
     - screen
@@ -126,6 +127,7 @@ _packages_common:
     - net-tools
     - nmap
     - nmap-ncat
+    - pciutils
     - pdsh
     - psmisc
     - rsync
@@ -184,6 +186,7 @@ _packages_additional:
   admin:
     default:
       - clustershell
+      - pciutils
       - pdsh
       - pssh
       - vim-enhanced
